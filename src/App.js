@@ -1,23 +1,27 @@
-import logo from './logo.svg';
-import './App.css';
+import { useEffect, useRef, useState } from "react";
+import "./App.css";
 
 function App() {
+  const [folder, setFolder] = useState([]);
+  const ref = useRef();
+  useEffect(() => {
+    if (ref.current === null) {
+      ref.current.setAttribute("directory", true);
+      ref.current.setAttribute("webkitdirectory", true);
+    }
+  }, [ref]);
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div className="bg-red-100">
+      <h1>Hello</h1>
+      <input
+        type="file"
+        webkitdirectory="true"
+        ref={ref}
+        onChange={(e) => {
+          setFolder(e.target.files);
+        }}
+      />
+      <ul id="listing"></ul>
     </div>
   );
 }
