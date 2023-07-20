@@ -1,28 +1,15 @@
-import { useEffect, useRef, useState } from "react";
-import "./App.css";
+import { Routes, Route } from "react-router-dom";
+import Home from "./pages/Home";
+import Login from "./pages/Login";
+import Register from "./pages/Register";
 
 function App() {
-  const [folder, setFolder] = useState([]);
-  const ref = useRef();
-  useEffect(() => {
-    if (ref.current === null) {
-      ref.current.setAttribute("directory", true);
-      ref.current.setAttribute("webkitdirectory", true);
-    }
-  }, [ref]);
   return (
-    <div className="bg-red-100">
-      <h1>Hello</h1>
-      <input
-        type="file"
-        webkitdirectory="true"
-        ref={ref}
-        onChange={(e) => {
-          setFolder(e.target.files);
-        }}
-      />
-      <ul id="listing"></ul>
-    </div>
+    <Routes>
+      <Route path="/" element={<Home />} />
+      <Route path="/login" element={<Login />} />
+      <Route path="register" element={<Register />} />
+    </Routes>
   );
 }
 
