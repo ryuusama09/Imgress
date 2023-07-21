@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useStore } from "../store";
 import { GoContainer } from "react-icons/go";
 import logo from "../assets/logo.png";
@@ -26,12 +26,6 @@ const Home = () => {
   function openModal() {
     setIsOpen(true);
   }
-  useEffect(() => {
-    if (ref.current === null) {
-      ref.current.setAttribute("directory", true);
-      ref.current.setAttribute("webkitdirectory", true);
-    }
-  }, [ref]);
 
   const customStyles = {
     content: {
@@ -74,16 +68,7 @@ const Home = () => {
           </button>
         </form>
       </Modal>
-      {/* <h1>Hello</h1>
-      <input
-        type="file"
-        webkitdirectory="true"
-        ref={ref}
-        onChange={(e) => {
-          setFolder(e.target.files);
-        }}
-      />
-      <ul id="listing"></ul> */}
+
       <div className="w-full flex justify-between items-center px-8 py-2 pt-6">
         <div className="flex">
           <img src={logo} className="max-w-[40px] mr-3" />
@@ -117,7 +102,7 @@ const Home = () => {
             <div className="col-span-1">Upload</div>
             <div className="col-span-1">Delete</div>
           </div>
-          <div className="grid grid-cols-12 text-sm gap-2">
+          <Link to="/upload-files" className="grid grid-cols-12 text-sm gap-2">
             <div className="col-span-1 flex items-center justify-center">
               <GoContainer />
             </div>
@@ -126,7 +111,7 @@ const Home = () => {
             <div className="col-span-1">Size</div>
             <div className="col-span-1">Upload</div>
             <div className="col-span-1">Delete</div>
-          </div>
+          </Link>
         </div>
       </div>
     </div>
