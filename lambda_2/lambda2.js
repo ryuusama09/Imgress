@@ -12,13 +12,7 @@ app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json());
 const PORT = 3004;
 
-app.get("/dev/", (req, res) => {
-  res.send("HELLO");
-});
 
-app.get("/dev/welcome", (req, res) => {
-  res.json({ message: "HARSH MC" });
-});
 
 if (process.env.ENVIRONMENT === "lambda") {
   module.exports.handler = serverless(app);
@@ -94,7 +88,20 @@ const deleteTidbImages = async function(req ,res){
     
 
 
-app.post("/uploadtidb", async (req , res) =>{
+app.post("/dev/uploadtidb", async (req , res) =>{
   const result = uploadTiDb(req , res)
   res.send(result)
 })
+app.get("/dev/", (req, res) => {
+  res.send("HELLO");
+});
+
+app.get("/dev/welcome", (req, res) => {
+  res.json({ message: "HARSH MC" });
+});
+app.post("/dev/deletetidbimg", async (req , res) =>{
+    deleteTidbImages(req , res)
+})
+app.post("/dev/deletetidbcont", async (req , res) =>{
+   deleteTidbContainers(req , res)
+})  

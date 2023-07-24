@@ -32,8 +32,9 @@ const classGenerator = function(engineName , engineID){
          return engineName+engineID;
 }
 const createInstance = async function (req, res) {
+  console.log(req.body)
   const uniqueEngineID = uuidv4Generator();
-  const userID = req.body.userID;
+  const userID = req.body.userId;
   const name = req.body.name;
   const schema = req.body.schema
   console.log(schema)
@@ -91,15 +92,17 @@ function mysqlQuery(connection , sql , values){
 
 }
 const loginHandler = async  function (req , res){
-  //console.log(req)
+  console.log(req.body)
    try {
     const { email , password } = req.body;
     //console.log(email , password)
     const sql = `SELECT * from userData WHERE email = '${email}' `
+    const connection = connectionHelper;
     const result = await mysqlQuery(connection, sql)
+    console.log(result)
     if(Object.keys(result).length === 0){
          res.send('no such user email you')
-         
+
     }
     const query = Object.values(result)[0];
     const pass =  Object.values(query)[2];
