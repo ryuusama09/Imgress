@@ -148,7 +148,7 @@ const AddContainer = ({ isOpen, setIsOpen }) => {
                       className="col-span-5"
                     >
                       <div className="relative">
-                        <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white py-2 pl-3 pr-10 text-left border border-gray-300 rounded-md">
+                        <Listbox.Button className="relative w-full cursor-default rounded-lg bg-white py-2 pl-3 pr-10 text-left border border-gray-300">
                           <span className="block truncate">
                             {property.dataType}
                           </span>
@@ -239,35 +239,36 @@ const AddContainer = ({ isOpen, setIsOpen }) => {
 
 const Home = () => {
   const navigate = useNavigate();
-  const [modalIsOpen, setIsOpen] = React.useState(false);
-
+  const [modalIsOpen, setIsOpen] = useState(false);
+  const [containers, setContainers] = useState(null)
   const user = useStore((state) => state.user);
   const logout = useStore((state) => state.logout);
-
-  const [folder, setFolder] = useState([]);
-
-  const ref = useRef();
-
   useEffect(() => {
     if (user === null) {
       navigate("/login");
     }
   }, [user]);
+  useEffect(() => {
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
 
+    var raw = JSON.stringify({
+      userID: user.UserID,
+    });
+    var requestOptions = {
+      method: "POST",
+      headers: myHeaders,
+      body: raw,
+      redirect: "follow",
+    };
+    fetch("http://localhost:3003/dev/guireturn", requestOptions)
+      .then((response) => response.text())
+      .then((result) => setContainers(JSON.parse(result)))
+      .catch((error) => console.log("error", error));
+  }, [])
   function openModal() {
     setIsOpen(true);
   }
-
-  const customStyles = {
-    content: {
-      top: "50%",
-      left: "50%",
-      right: "auto",
-      bottom: "auto",
-      marginRight: "-50%",
-      transform: "translate(-50%, -50%)",
-    },
-  };
   return (
     <div className="w-screen h-screen bg-[#E6EEFF]">
       <AddContainer isOpen={modalIsOpen} setIsOpen={setIsOpen} />
@@ -314,16 +315,18 @@ const Home = () => {
             <div className="col-span-1">Upload</div>
             <div className="col-span-1">Delete</div>
           </div>
-          <Link to="/upload-files" className="grid grid-cols-12 text-sm gap-2">
-            <div className="col-span-1 flex items-center justify-center">
-              <GoContainer />
-            </div>
-            <div className="col-span-3">Name</div>
-            <div className="col-span-5">Url</div>
-            <div className="col-span-1">Size</div>
-            <div className="col-span-1">Upload</div>
-            <div className="col-span-1">Delete</div>
-          </Link>
+          {containers?.map((item, index) => (
+            <Link to="/upload-files" key={index} className="grid grid-cols-12 text-sm gap-2">
+              <div className="col-span-1 flex items-center justify-center">
+                <GoContainer />
+              </div>
+              <div className="col-span-3">{item.name}</div>
+              <div className="col-span-5">{item.apiURL}</div>
+              <div className="col-span-1">Size</div>
+              <div className="col-span-1">Upload</div>
+              <div className="col-span-1">Delete</div>
+            </Link>
+          ))}
         </div>
       </div>
     </div>

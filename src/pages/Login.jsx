@@ -28,7 +28,7 @@ const Login = () => {
       .then((response) => response.text())
       .then((result) => {
         const data = JSON.parse(result);
-        console.log(data.result[0]);
+        console.log(data);
         Login(data.result[0]);
         navigate("/");
       })
