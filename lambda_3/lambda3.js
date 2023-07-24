@@ -50,9 +50,11 @@ const createClass = async function(req , res){
     
     const newSchema = schemaConfig;
     newSchema.class = className
+    if(req.body.schema !== null){
     for(let i = 0; i < req.body.schema.length ; i++){
         newSchema.properties.push(req.body.schema[i])
     } 
+}
    console.log(newSchema)
    try{
     await client.schema.classCreator()

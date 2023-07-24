@@ -1,5 +1,5 @@
 const mysql = require('./lamda_1/node_modules/mysql')
-const connection = mysql.createConnection({
+const connectionHelper = mysql.createConnection({
     host: "gateway01.eu-central-1.prod.aws.tidbcloud.com",
     port: 4000, // default TiDB port is 4000
     user: "3dgtwFUbG2B7Tr1.root",
@@ -10,4 +10,4 @@ const connection = mysql.createConnection({
       rejectUnauthorized: true,
     },
   });
-  module.exports = connection;
+  module.exports = connectionHelper;
