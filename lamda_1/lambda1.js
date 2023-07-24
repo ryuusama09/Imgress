@@ -21,17 +21,7 @@ if (process.env.ENVIRONMENT === "lambda") {
   });
 }
 
-const connection = mysql.createConnection({
-  host: "gateway01.eu-central-1.prod.aws.tidbcloud.com",
-  port: 4000, // default TiDB port is 4000
-  user: "3dgtwFUbG2B7Tr1.root",
-  password: "3NFEh6DwOFfkQvsz",
-  database: "DataDb",
-  ssl: {
-    minVersion: "TLSv1.2",
-    rejectUnauthorized: true,
-  },
-});
+
 
 
 const apiGenerator = function (engineName , engineID){
@@ -53,17 +43,23 @@ const createInstance = async function (req, res) {
   try{
   const sql = "INSERT INTO EngineData (engineID, userID, apiURL,name,class) VALUES (?, ?, ?,?,?)";
   const values = [uniqueEngineID, userID,EngineApi,name,className];
-  const result = await mysqlQuery(connection,sql,values);
-   res.status(200).send(result)
+  const connection = connectionHelper;
+  await mysqlQuery(connection,sql,values).then(response=>{
+    res.status(200).json({response, "success" : true})
+  }) 
   }catch(err){
     res.status(404).json(err);
-  } // connection.end();
+  } 
 };
 const DeliverData = async function (req, res) {
   try{
   const sql = `SELECT * FROM EngineData WHERE userID = ${req.body.userID} `;
-  const result = await mysqlQuery(connection , sql);
-  res.status(200).send(result)
+  const connection = connectionHelper
+  await mysqlQuery(connection , sql).then(
+    response=>{
+      res.status(200).send(response)
+    }
+  )
   }catch(err){
     res.status(404).json(err);
   }
@@ -146,11 +142,14 @@ const signUpHandler = async function (req ,res){
 const getImgList = async function(req, res){
      const engineID = req.body.engineID;
      const sql = `SELECT * from imageData WHERE engineId = '${engineID}' `;
-     const connection = new connectionHelper();
-     connection.database = 'imgdb';
+     const connection = connectionHelper;
+     connection.config.database = 'imgdb'
      try{
-     const result = await mysqlQuery(connection , sql);
-     res.status(200).send(result);
+     await mysqlQuery(connection , sql).then(
+      response =>{
+        res.status(200).send(response)
+      }
+     )
      }catch(err){
       res.status(500).json({success : false});
      }
