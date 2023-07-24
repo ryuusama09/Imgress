@@ -53,8 +53,9 @@ const createInstance = async function (req, res) {
   } 
 };
 const DeliverData = async function (req, res) {
+  console.log(req.body)
   try{
-  const sql = `SELECT * FROM EngineData WHERE userID = ${req.body.userID} `;
+  const sql = `SELECT * FROM EngineData WHERE userID = '${req.body.userID}' `;
   const connection = connectionHelper
   await mysqlQuery(connection , sql).then(
     response=>{
@@ -162,7 +163,7 @@ const getImgList = async function(req, res){
 app.post("/dev/create-instance", async(req, res) => {
   createInstance(req, res);
 });
-app.get("/dev/guireturn", async (req, res) => {
+app.post("/dev/guireturn", async (req, res) => {
   DeliverData(req, res);
 });
 app.post("/dev/login", async(req, res)=>{
