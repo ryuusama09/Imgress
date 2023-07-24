@@ -27,8 +27,9 @@ const Login = () => {
     fetch("http://localhost:3003/dev/login", requestOptions)
       .then((response) => response.text())
       .then((result) => {
-        console.log(result);
-        Login(result.userID);
+        const data = JSON.parse(result);
+        console.log(data.result[0]);
+        Login(data.result[0]);
         navigate("/");
       })
       .catch((error) => console.log("error", error));
