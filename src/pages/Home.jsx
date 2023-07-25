@@ -1,11 +1,15 @@
 import React, { Fragment, useEffect, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useStore } from "../store";
-import { GoContainer } from "react-icons/go";
+import { Dialog, Listbox, Menu, Transition } from "@headlessui/react";
+import { CopyToClipboard } from "react-copy-to-clipboard";
+import { GoContainer, GoCopy } from "react-icons/go";
 import { IoAddCircleOutline, IoTrashBin } from "react-icons/io5";
 import { HiChevronUpDown, HiCheck } from "react-icons/hi2";
+import { HiDotsVertical, HiOutlineDocumentDuplicate } from "react-icons/hi";
+import { RiFolderUploadLine } from "react-icons/ri";
+import { LuFolderEdit } from "react-icons/lu";
 import logo from "../assets/logo.png";
-import { Dialog, Listbox, Transition } from "@headlessui/react";
 
 const AddContainer = ({ isOpen, setIsOpen }) => {
   const user = useStore((state) => state.user);
@@ -20,7 +24,7 @@ const AddContainer = ({ isOpen, setIsOpen }) => {
   const closeModal = () => {
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
-    let schema = data
+    let schema = data;
     var raw = JSON.stringify({
       userId: user.UserID,
       name: schema.name,
@@ -45,11 +49,11 @@ const AddContainer = ({ isOpen, setIsOpen }) => {
     setData({
       name: "",
       properties: [],
-    })
+    });
     setProperty({
       name: "",
       dataType: "String",
-    })
+    });
     setIsOpen(false);
   };
   return (
@@ -101,16 +105,10 @@ const AddContainer = ({ isOpen, setIsOpen }) => {
                     <h1 className="col-span-2">Action</h1>
                     {data.properties?.map((item, index) => (
                       <>
-                        <h1
-                          key={index + item.name}
-                          className="col-span-5"
-                        >
+                        <h1 key={index + item.name} className="col-span-5">
                           {item.name}
                         </h1>
-                        <h1
-                          key={index + item.dataType}
-                          className="col-span-5"
-                        >
+                        <h1 key={index + item.dataType} className="col-span-5">
                           {item.dataType}
                         </h1>
                         <IoTrashBin
@@ -211,7 +209,7 @@ const AddContainer = ({ isOpen, setIsOpen }) => {
                           properties: [...data.properties, property],
                         });
                         setProperty({
-                          name: "", 
+                          name: "",
                           dataType: "String",
                         });
                       }}
@@ -238,22 +236,23 @@ const AddContainer = ({ isOpen, setIsOpen }) => {
 };
 
 const Home = () => {
+  const links = [
+    { href: "/account-settings", label: "Settings" },
+    { href: "/support", label: "Support" },
+    { href: "/license", label: "License" },
+    { href: "/sign-out", label: "Sign out" },
+  ];
   const navigate = useNavigate();
   const [modalIsOpen, setIsOpen] = useState(false);
-  const [containers, setContainers] = useState(null)
+  const [containers, setContainers] = useState(null);
   const user = useStore((state) => state.user);
   const logout = useStore((state) => state.logout);
-  useEffect(() => {
-    if (user === null) {
-      navigate("/login");
-    }
-  }, [user]);
-  useEffect(() => {
+  const getContainers = () => {
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
 
     var raw = JSON.stringify({
-      userID: user.UserID,
+      userID: user?.UserID,
     });
     var requestOptions = {
       method: "POST",
@@ -263,12 +262,20 @@ const Home = () => {
     };
     fetch("http://localhost:3003/dev/guireturn", requestOptions)
       .then((response) => response.text())
-      .then((result) => setContainers(JSON.parse(result)))
+      .then((result) => {
+        console.log(JSON.parse(result));
+        setContainers(JSON.parse(result));
+      })
       .catch((error) => console.log("error", error));
-  }, [])
-  function openModal() {
-    setIsOpen(true);
   }
+  useEffect(() => {
+    if (user === null) {
+      navigate("/login");
+    }
+  }, [user]);
+  useEffect(() => {
+    getContainers();
+  }, [modalIsOpen]);
   return (
     <div className="w-screen h-screen bg-[#E6EEFF]">
       <AddContainer isOpen={modalIsOpen} setIsOpen={setIsOpen} />
@@ -295,37 +302,123 @@ const Home = () => {
         </button>
       </div>
       <div className="m-6 pb-6 shadow rounded pt-2 bg-white">
-        <div className="w-full flex justify-between items-center px-8 py-2 mt-4">
+        <div className="w-full flex justify-between items-center px-8 py-2 mt-2">
           <h1 className="text-2xl font-normal">Containers</h1>
           <button
-            onClick={openModal}
+            onClick={() => setIsOpen(true)}
             className="bg-blue-500 text-sm text-white p-1 px-2 rounded-md"
           >
             Add
           </button>
         </div>
         <div className="px-12 mt-4 flex flex-col gap-2">
-          <div className="grid grid-cols-12 text-sm font-medium gap-2">
-            <div className="col-span-1 flex items-center justify-center">
+          <div className="grid grid-cols-12 font-medium gap-2">
+            <div className="col-span-1 flex items-center justify-center text-xl">
               <GoContainer />
             </div>
-            <div className="col-span-3">Name</div>
-            <div className="col-span-5">Url</div>
-            <div className="col-span-1">Size</div>
+            <div className="col-span-2">Name</div>
+            <div className="col-span-7">Url</div>
             <div className="col-span-1">Upload</div>
-            <div className="col-span-1">Delete</div>
+            <div className="col-span-1"></div>
           </div>
           {containers?.map((item, index) => (
-            <Link to="/upload-files" key={index} className="grid grid-cols-12 text-sm gap-2">
-              <div className="col-span-1 flex items-center justify-center">
+            <div
+              key={index}
+              className="grid grid-cols-12 items-center text-sm gap-2"
+            >
+              <div className="col-span-1 flex items-center justify-center text-xl">
                 <GoContainer />
               </div>
-              <div className="col-span-3">{item.name}</div>
-              <div className="col-span-5">{item.apiURL}</div>
-              <div className="col-span-1">Size</div>
-              <div className="col-span-1">Upload</div>
-              <div className="col-span-1">Delete</div>
-            </Link>
+              <div className="col-span-2">{item.name}</div>
+              <div className="col-span-7 flex justify-between items-center">
+                <h1 className="">{item.apiURL}</h1>
+                <CopyToClipboard
+                  className="text-2xl cursor-pointer"
+                  text={item.apiURL}
+                >
+                  <GoCopy />
+                </CopyToClipboard>
+              </div>
+              <Link
+                to={"/upload-files/" + item.engineID}
+                className="col-span-1 mx-auto"
+              >
+                <RiFolderUploadLine className="text-2xl" />
+              </Link>
+              <div className="col-span-1">
+                <Menu
+                  as="div"
+                  className="w-full relative inline-block text-left"
+                >
+                  <div className="flex justify-end">
+                    <Menu.Button className="rounded-full p-2 text-sm font-medium text-white hover:bg-gray-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-opacity-75">
+                      <HiDotsVertical
+                        className="h-5 w-5 text-gray-800"
+                        aria-hidden="true"
+                      />
+                    </Menu.Button>
+                  </div>
+                  <Transition
+                    as={Fragment}
+                    enter="transition ease-out duration-100"
+                    enterFrom="transform opacity-0 scale-95"
+                    enterTo="transform opacity-100 scale-100"
+                    leave="transition ease-in duration-75"
+                    leaveFrom="transform opacity-100 scale-100"
+                    leaveTo="transform opacity-0 scale-95"
+                  >
+                    <Menu.Items className="absolute right-0 mt-2 w-36 origin-top-right divide-y divide-gray-100 rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
+                      <div className="px-1 py-1 ">
+                        <Menu.Item>
+                          {({ active }) => (
+                            <button
+                              className={`${
+                                active
+                                  ? "bg-blue-500 text-white"
+                                  : "text-gray-900"
+                              } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                            >
+                              <LuFolderEdit className="mr-2" />
+                              Edit
+                            </button>
+                          )}
+                        </Menu.Item>
+                        <Menu.Item>
+                          {({ active }) => (
+                            <button
+                              className={`${
+                                active
+                                  ? "bg-blue-500 text-white"
+                                  : "text-gray-900"
+                              } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                            >
+                              <HiOutlineDocumentDuplicate className="mr-2" />
+                              Duplicate
+                            </button>
+                          )}
+                        </Menu.Item>
+                      </div>
+                      <div className="px-1 py-1">
+                        <Menu.Item>
+                          {({ active }) => (
+                            <button
+                              className={`${
+                                active
+                                  ? "bg-red-500 text-white"
+                                  : "text-red-700"
+                              } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
+                            >
+                              <IoTrashBin className="mr-2" />
+                              Delete
+                            </button>
+                          )}
+                        </Menu.Item>
+                      </div>
+                    </Menu.Items>
+                  </Transition>
+                </Menu>
+              </div>
+            </div>
           ))}
         </div>
       </div>
