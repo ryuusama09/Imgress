@@ -92,7 +92,7 @@ const Login = () => {
             type="submit"
             className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white p-2 rounded-md text-sm"
           >
-            Register
+            Login
           </button>
           <Link to="/register" className="text-blue-600 mt-4 font-medium">
             Do not have an account? Sign Up
