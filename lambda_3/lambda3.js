@@ -2,7 +2,7 @@ import weaviate from 'weaviate-ts-client'
 import {readFileSync,writeFileSync} from 'fs'
 import bodyParser from 'body-parser'
 import ServerlessHttp from 'serverless-http'
-import express from 'express'
+import express, { response } from 'express'
 import cors from 'cors'
 import schemaConfig from './schema.js'
 const app = express()
@@ -39,6 +39,9 @@ app.post("/dev/update" , async(req, res)=>{
 })
 app.post("/dev/upload" , async(req , res)=>{
     upload(req ,res)
+})
+app.get("/dev/schema" , async(req , res)=>{
+   SchemaGetter(req ,res)
 })
 
 const createClass = async function(req , res){
@@ -115,6 +118,31 @@ const deleteImage = async function (req , res){
     }
     res.status(200).json({success : true});
    
+}
+
+const SchemaGetter = async function(req,  res){
+    const client = weaviate.client({
+        scheme: 'http',
+        host: '34.229.70.140:8080',
+    });
+    const classname = req.body.className
+    console.log(classname)
+    try{
+        client.schema.classGetter()
+        .withClassName(classname)
+        .do()
+        .then(response => {
+          console.log();
+          res.status(200).send(response.properties)
+
+        })
+        .catch(err => {
+          console.error(err)
+        });
+    }catch(err){
+        res.status(404).json(err)
+    }
+    
 }
 
 const updateImg = async function (req , res){

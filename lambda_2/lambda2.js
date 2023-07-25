@@ -4,14 +4,16 @@ const serverless = require("serverless-http");
 const { v4: uuidv4Generator } = require('uuid')
 const app = express();
 const fs = require('fs');
+const cors = require('cors')
 const mysqlQuery = require('../sql')
-const connection = require('../mysqlHelper');
 const connectionHelper = require("../mysqlHelper");
 const bodyParser = require("body-parser");
 const multer = require('multer')
+const AWS = require('aws-sdk')
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }))
 app.use(bodyParser.json());
+app.use(cors())
 const PORT = 3004;
 
 
@@ -36,23 +38,54 @@ const imgConfig = multer.diskStorage({
 
 const upload = multer({ storage: imgConfig });
 
-app.post("/dev/upload-images", upload.array("files"), (req, res) => {
-  const files = req.files;
-  const PATH = "http//localhost:3004/";
-  const engineId = "23232";
-  try {
-    for (var i = 0; i < files.length; i++) {
-      const fileName = files[i].originalname;
-      const sql = "INSERT INTO imageData (engineId,image) values(?,?)";
-      const values = [engineId, `${PATH}uploads/${fileName}`];
-      mysqlQuery(connection, sql, values);
-    }
-    res.json({ message: "Success" });
-  } catch (e) {
-    console.log(e);
-    res.json({ message: "Failure" });
-  }
+// app.post("/dev/upload-images", upload.array("files"), (req, res) => {
+//   const files = req.files;
+//   console.log('works')
+  
+//   const PATH = "http//localhost:3004/";
+//   const engineId = "23232";
+//   const connection = connectionHelper;
+//   connection.config.database = 'imgdb';
+//   try {
+//     for (var i = 0; i < files.length; i++) {
+//       const fileName = files[i].originalname;
+//       const sql = "INSERT INTO imageData (engineId,image) values(?,?)";
+//       const values = [engineId, `${PATH}uploads/${fileName}`];
+//       mysqlQuery(connection, sql, values);
+//     }
+//     res.json({ message: "Success" });
+//   } catch (e) {
+//     console.log(e);
+//     res.json({ message: "Failure" });
+//   }
+// });
+
+const uploadImg = async function ( req, res){
+  const s3 = new AWS.S3();
+s3.config.update({
+  accessKeyId: 'AKIA47AMLKB3ZK5V5XF2',
+  secretAccessKey: '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',
+ 
 });
+const filePath = 'C:/Users/ryusama09/Downloads/back-2.avif'
+const fileContent = fs.readFileSync(filePath);
+const key ='test'
+  const params = {
+    Bucket: 'imgress-1',
+    Body: fileContent,
+    Key: key,
+  };
+
+  s3.upload(params, function (err, data) {
+    if (err) {
+      console.log('Error uploading file:', err);
+    } else {
+      console.log('File uploaded successfully. File location:', data.Location);
+       res.status(200).send(data.Location)
+    }
+  });
+
+}
 
 const deleteMulter = function(path){
   fs.unlink(path, (err) => {
@@ -113,10 +146,10 @@ const deleteTidbImages = async function(req ,res){
     
 
 
-app.post("/dev/uploadtidb", async (req , res) =>{
-  const result = uploadTiDb(req , res)
-  res.send(result)
-})
+// app.post("/dev/uploadtidb", async (req , res) =>{
+//   const result = uploadTiDb(req , res)
+//   res.send(result)
+// })
 app.get("/dev/", (req, res) => {
   res.send("HELLO");
 });
@@ -129,4 +162,7 @@ app.post("/dev/deletetidbimg", async (req , res) =>{
 })
 app.post("/dev/deletetidbcont", async (req , res) =>{
    deleteTidbContainers(req , res)
+})  
+app.post("/dev/upload", async (req , res) =>{
+  uploadImg(req , res)
 })  
