@@ -148,15 +148,15 @@ const client = weaviate.client({
   
 const b64 = Buffer.from(img).toString('base64');
 
-await client.data.creator()
-  .withClassName('Testxz')
-  .withProperties({
-    image: b64,
-    text: 'test',
-    engineID : 13454,
-    imageID : 242223
-  })
-  .do();
+// await client.data.creator()
+//   .withClassName('Testxz')
+//   .withProperties({
+//     image: b64,
+//     text: 'test',
+//     engineID : 13454,
+//     imageID : 242223
+//   })
+//   .do();
 
   const test = Buffer.from( readFileSync('./imgg.jpeg') ).toString('base64');
 
