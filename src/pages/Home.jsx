@@ -2,6 +2,7 @@ import React, { Fragment, useEffect, useRef, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useStore } from "../store";
 import { Dialog, Listbox, Menu, Transition } from "@headlessui/react";
+import { ToastContainer, toast } from "react-toastify";
 import { CopyToClipboard } from "react-copy-to-clipboard";
 import { GoContainer, GoCopy } from "react-icons/go";
 import { IoAddCircleOutline, IoTrashBin } from "react-icons/io5";
@@ -10,6 +11,7 @@ import { HiDotsVertical, HiOutlineDocumentDuplicate } from "react-icons/hi";
 import { RiFolderUploadLine } from "react-icons/ri";
 import { LuFolderEdit } from "react-icons/lu";
 import logo from "../assets/logo.png";
+import "react-toastify/dist/ReactToastify.css";
 
 const AddContainer = ({ isOpen, setIsOpen }) => {
   const user = useStore((state) => state.user);
@@ -21,7 +23,7 @@ const AddContainer = ({ isOpen, setIsOpen }) => {
     name: "",
     dataType: "String",
   });
-  const closeModal = () => {
+  const create = () => {
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
     let schema = data;
@@ -44,8 +46,23 @@ const AddContainer = ({ isOpen, setIsOpen }) => {
     };
     fetch("http://localhost:3003/dev/create-instance", requestOptions)
       .then((response) => response.text())
-      .then((result) => console.log(result))
-      .catch((error) => console.log("error", error));
+      .then((result) => {
+        toast.success("Container created", {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
+        console.log(result)
+      })
+      .catch((error) => {
+        console.log("error", error)
+        toast.error("Error Creating Container");
+      });
     setData({
       name: "",
       properties: [],
@@ -55,10 +72,14 @@ const AddContainer = ({ isOpen, setIsOpen }) => {
       dataType: "String",
     });
     setIsOpen(false);
-  };
+  }
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-10" onClose={closeModal}>
+      <Dialog
+        as="div"
+        className="relative z-10"
+        onClose={() => setIsOpen(false)}
+      >
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -221,7 +242,7 @@ const AddContainer = ({ isOpen, setIsOpen }) => {
                   <button
                     type="button"
                     className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                    onClick={closeModal}
+                    onClick={() => create()}
                   >
                     Submit
                   </button>
@@ -244,13 +265,14 @@ const Home = () => {
   ];
   const navigate = useNavigate();
   const [modalIsOpen, setIsOpen] = useState(false);
+  const [deleteModal, setDeleteModal] = useState(false)
   const [containers, setContainers] = useState(null);
+  const [select, setSelect] = useState(false)
   const user = useStore((state) => state.user);
   const logout = useStore((state) => state.logout);
   const getContainers = () => {
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
-
     var raw = JSON.stringify({
       userID: user?.UserID,
     });
@@ -263,10 +285,41 @@ const Home = () => {
     fetch("http://localhost:3003/dev/guireturn", requestOptions)
       .then((response) => response.text())
       .then((result) => {
-        console.log(JSON.parse(result));
-        setContainers(JSON.parse(result));
+        const newData = JSON.parse(result).map((item) => {
+          return {
+            ...item,
+            selected: false,
+          };
+        });
+        console.log(newData); 
+        setContainers(newData);
       })
       .catch((error) => console.log("error", error));
+  }
+  const deleteContainer = (id) => {
+
+  }
+  const selectContainer = (id) => {
+    const newData = containers?.map((item) => {
+      if (item.engineID === id) {
+        return {
+          ...item,
+          selected: !item.selected,
+        };
+      } else {
+        return item;
+      }
+    });
+    setContainers(newData);
+  }
+  const selectAll = (data) => {
+    const newData = containers?.map((item) => {
+      return {
+        ...item,
+        selected: data,
+      };
+    });
+    setContainers(newData);
   }
   useEffect(() => {
     if (user === null) {
@@ -276,8 +329,12 @@ const Home = () => {
   useEffect(() => {
     getContainers();
   }, [modalIsOpen]);
+  useEffect(() => {
+    selectAll(select)
+  }, [select]);
   return (
-    <div className="w-screen h-screen bg-[#E6EEFF]">
+    <div className="min-h-screen px-24 py-6 bg-[#E6EEFF]">
+      <ToastContainer />
       <AddContainer isOpen={modalIsOpen} setIsOpen={setIsOpen} />
       {/* <h1>Hello</h1>
       <input
@@ -289,7 +346,86 @@ const Home = () => {
         }}
       />
       <ul id="listing"></ul> */}
-      <div className="w-full flex justify-between items-center px-8 py-2 pt-6">
+      <Transition appear show={deleteModal} as={Fragment}>
+        <Dialog
+          as="div"
+          className="relative z-10"
+          onClose={() => setDeleteModal(false)}
+        >
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-lg font-medium leading-6 text-gray-900"
+                  >
+                    Delete Container
+                  </Dialog.Title>
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-500">
+                      Lorem ipsum dolor sit amet, consectetur adipisicing elit.
+                      Ducimus veritatis neque aspernatur tempore molestias
+                      dolorum vero dicta velit est id nam, obcaecati blanditiis
+                      dolorem quia voluptatibus, ipsum labore, adipisci illum.
+                    </p>
+                  </div>
+
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      className="inline-flex justify-center rounded-md mr-2 border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+                      onClick={() => {
+                        toast.success("Container Deleted", {
+                          position: "bottom-right",
+                          autoClose: 5000,
+                          hideProgressBar: false,
+                          closeOnClick: true,
+                          pauseOnHover: true,
+                          draggable: true,
+                          progress: undefined,
+                          theme: "light",
+                        });
+                        setDeleteModal(false);
+                      }}
+                    >
+                      Delete
+                    </button>
+                    <button
+                      type="button"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                      onClick={() => setDeleteModal(false)}
+                    >
+                      Nope
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
+      <div className="w-full flex justify-between items-center">
         <div className="flex">
           <img src={logo} className="max-w-[40px] mr-3" />
           <h1 className="text-3xl font-medium">Dashboard</h1>
@@ -301,32 +437,54 @@ const Home = () => {
           Logout
         </button>
       </div>
-      <div className="m-6 pb-6 shadow rounded pt-2 bg-white">
-        <div className="w-full flex justify-between items-center px-8 py-2 mt-2">
-          <h1 className="text-2xl font-normal">Containers</h1>
-          <button
-            onClick={() => setIsOpen(true)}
-            className="bg-blue-500 text-sm text-white p-1 px-2 rounded-md"
-          >
-            Add
-          </button>
+      <div className="shadow rounded-xl bg-white my-6 py-6 px-8">
+        <div className="w-full flex justify-between items-center mt-2">
+          <h1 className="text-3xl font-semibold">Containers</h1>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setIsOpen(true)}
+              className="inline-flex justify-center rounded-md mr-2 border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+            >
+              Delete Selected
+            </button>
+            <button
+              onClick={() => setIsOpen(true)}
+              className="bg-blue-500 text-sm text-white px-4 py-2 rounded-md"
+            >
+              Add
+            </button>
+          </div>
         </div>
-        <div className="px-12 mt-4 flex flex-col gap-2">
-          <div className="grid grid-cols-12 font-medium gap-2">
-            <div className="col-span-1 flex items-center justify-center text-xl">
+        <div className=" mt-6 flex flex-col gap-2 col">
+          <div className="grid grid-cols-12 font-medium gap-2 py-2 text-xl">
+            <div className="col-span-1 flex items-center justify-evenly">
+              <input
+                type="checkbox"
+                className="w-5 h-5"
+                checked={select}
+                onChange={() => setSelect(!select)}
+              />
               <GoContainer />
             </div>
             <div className="col-span-2">Name</div>
             <div className="col-span-7">Url</div>
-            <div className="col-span-1">Upload</div>
+            <div className="col-span-1 ml-auto">Upload</div>
             <div className="col-span-1"></div>
           </div>
           {containers?.map((item, index) => (
             <div
               key={index}
-              className="grid grid-cols-12 items-center text-sm gap-2"
+              className={`grid grid-cols-12 items-center gap-2 py-2 rounded-md ${
+                item.selected && "bg-blue-200"
+              }`}
             >
-              <div className="col-span-1 flex items-center justify-center text-xl">
+              <div className="col-span-1 flex items-center justify-evenly text-xl">
+                <input
+                  type="checkbox"
+                  className="w-5 h-5"
+                  checked={item.selected}
+                  onChange={() => selectContainer(item.engineID)}
+                />
                 <GoContainer />
               </div>
               <div className="col-span-2">{item.name}</div>
@@ -341,7 +499,7 @@ const Home = () => {
               </div>
               <Link
                 to={"/upload-files/" + item.engineID}
-                className="col-span-1 mx-auto"
+                className="col-span-1 ml-auto"
               >
                 <RiFolderUploadLine className="text-2xl" />
               </Link>
@@ -402,6 +560,7 @@ const Home = () => {
                         <Menu.Item>
                           {({ active }) => (
                             <button
+                              onClick={() => setDeleteModal(true)}
                               className={`${
                                 active
                                   ? "bg-red-500 text-white"
