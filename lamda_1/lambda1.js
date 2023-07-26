@@ -21,8 +21,8 @@ if (process.env.ENVIRONMENT === "lambda") {
   });
 }
 
-const apiGenerator = function (engineName, engineID) {
-  const key = engineName + engineID;
+const apiGenerator = function (className) {
+  const key = className;
   return `http://localhost:3005/dev/fetch/${key}`;
 };
 const classGenerator = function (engineName, engineID) {
@@ -30,13 +30,17 @@ const classGenerator = function (engineName, engineID) {
 };
 const createInstance = async function (req, res) {
   console.log(req.body);
-  const uniqueEngineID = uuidv4Generator();
+  let uniqueEngineID = uuidv4Generator();
+  uniqueEngineID = uniqueEngineID.replaceAll("-", "");
   const userID = req.body.userId;
   const name = req.body.name;
   const schema = req.body.schema;
   console.log(schema);
-  const EngineApi = apiGenerator(name, uniqueEngineID);
-  const className = classGenerator(name, uniqueEngineID);
+  let className = classGenerator(name, uniqueEngineID);
+  className =
+    className[0].toUpperCase() + className.slice(1, className.length - 1);
+  const EngineApi = apiGenerator(className);
+  console.log(className);
   //need to connect the tidb cluster 0
   try {
     const sql =
@@ -44,7 +48,7 @@ const createInstance = async function (req, res) {
     const values = [uniqueEngineID, userID, EngineApi, name, className];
     const connection = connectionHelper;
     await mysqlQuery(connection, sql, values).then((response) => {
-      res.status(200).json({ response, success: true });
+      res.status(200).json({ response, className, success: true });
     });
   } catch (err) {
     res.status(404).json(err);

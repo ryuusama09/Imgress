@@ -1,12 +1,16 @@
 import weaviate from "weaviate-ts-client";
 import { readFileSync, writeFileSync } from "fs";
 import bodyParser from "body-parser";
+import cors from "cors";
 import ServerlessHttp from "serverless-http";
 import express, { response } from "express";
-import cors from "cors";
+import multer from "multer";
 import schemaConfig from "./schema.js";
 const app = express();
-//app.use(cors())
+app.use(cors());
+
+var storage = multer.memoryStorage();
+var upload2 = multer({ storage: storage });
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 if (process.env.ENVIRONMENT === "lambda") {
@@ -17,7 +21,7 @@ if (process.env.ENVIRONMENT === "lambda") {
   });
 }
 
-app.post(`/dev/fetch/*`, async (req, res) => {
+app.post(`/dev/fetch/*`, upload2.any(), async (req, res) => {
   fetchImage(req, res);
 });
 
@@ -36,10 +40,10 @@ app.post("/dev/delete", async (req, res) => {
 app.post("/dev/update", async (req, res) => {
   updateImg(req, res);
 });
-app.post("/dev/upload", async (req, res) => {
+app.post("/dev/upload", upload2.any(), async (req, res) => {
   upload(req, res);
 });
-app.get("/dev/schema", async (req, res) => {
+app.post("/dev/schema", async (req, res) => {
   SchemaGetter(req, res);
 });
 
@@ -52,11 +56,11 @@ const createClass = async function (req, res) {
 
   const newSchema = schemaConfig;
   newSchema.class = className;
-  if (req.body.schema !== null) {
-    for (let i = 0; i < req.body.schema.length; i++) {
-      newSchema.properties.push(req.body.schema[i]);
-    }
-  }
+  // if (req.body?.schema !== undefined) {
+  //   for (let i = 0; i < req.body.schema.length; i++) {
+  //     newSchema.properties.push(req.body.schema[i]);
+  //   }
+  // }
   console.log(newSchema);
   try {
     await client.schema
@@ -121,21 +125,19 @@ const SchemaGetter = async function (req, res) {
   });
   const classname = req.body.className;
   console.log(classname);
-  try {
-    client.schema
-      .classGetter()
-      .withClassName(classname)
-      .do()
-      .then((response) => {
-        console.log();
-        res.status(200).send(response.properties);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-  } catch (err) {
-    res.status(404).json(err);
-  }
+
+  client.schema
+    .classGetter()
+    .withClassName(classname)
+    .do()
+    .then((response) => {
+      console.log("Hello", response);
+      res.status(200).json(response);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(404).json(err);
+    });
 };
 
 const updateImg = async function (req, res) {
@@ -166,9 +168,9 @@ const fetchImage = async function (req, res) {
     scheme: "http",
     host: "34.229.70.140:8080",
   });
-  const img = req.body.file; // i dont know how exactly
+  const img = req.files[0]; // i dont know how exactly
 
-  const b64 = Buffer.from(img).toString("base64");
+  const b64 = Buffer.from(img.buffer).toString("base64");
 
   // await client.data.creator()
   //   .withClassName('Testxz')
@@ -180,45 +182,62 @@ const fetchImage = async function (req, res) {
   //   })
   //   .do();
 
-  const test = Buffer.from(readFileSync("./imgg.jpeg")).toString("base64");
+  // const test = Buffer.from(readFileSync("./imgg.jpeg")).toString("base64");
 
   const resImage = await client.graphql
     .get()
-    .withClassName("Testxz")
+    .withClassName("Twelthd6824a919c0649cfa3f10a9230d5370")
     .withFields(["image"])
-    .withNearImage({ image: test })
+    .withNearImage({ image: b64 })
     .withLimit(1)
     .do();
-  const result = resImage.data.Get.Testxz[0].image;
+  const result =
+    resImage.data.Get["Twelthd6824a919c0649cfa3f10a9230d5370"][0].image;
   //writeFileSync('./result.jpeg', result, 'base64');
 
   res.send(result);
 };
 
-const uploadWeavita = async (req, className, engineID, ids) => {
+const uploadWeaviate = async (req, className, engineID, ids) => {
+  const client = weaviate.client({
+    scheme: "http",
+    host: "34.229.70.140:8080",
+  });
   console.log(req.files);
   const files = req.files;
   var b64collection = [];
-  for (let i = 0; i < files.length; i++) {
-    b64collection.push(Buffer.from(files[i]).toString("base64"));
-  }
-  for (let i = 0; i < ids; i++) {
-    await client.data
-      .creator()
-      .withClassName(className)
-      .withProperties({
-        image: b64collection[i],
-        text: "matrix meme",
-        engineID: engineID,
-        imageID: ids[i],
-      })
-      .do();
+  try {
+    console.log(files.length, ids.length);
+    for (let i = 0; i < files.length; i++) {
+      b64collection.push(Buffer.from(files[i].buffer).toString("base64"));
+    }
+    for (let i = 0; i < ids.length; i++) {
+      const res = await client.data
+        .creator()
+        .withClassName(className)
+        .withProperties({
+          image: b64collection[i],
+          engineID: engineID,
+          imageID: ids[i],
+        })
+        .do();
+      console.log("helo", res);
+    }
+    return true;
+  } catch (e) {
+    console.log(e);
+    return false;
   }
 };
 
 const upload = async function (req, res) {
   const className = req.body.className;
   const engineID = req.body.engineID;
-  const ids = req.body.imageIds;
-  const response = await uploadWeavita(req, className, engineID, ids);
+  const ids = req.body.imageIds.split(",");
+  const response = await uploadWeaviate(req, className, engineID, ids);
+  if (response) {
+    res.status(201).json({ message: "Success" });
+  } else {
+    res.status(500).json({ message: "Failure" });
+  }
 };
