@@ -196,12 +196,25 @@ const fetchImage = async function (req, res) {
 };
 
 const upload = async function (req, res) {
-  await client.data
+  const className = req.body.className
+  const engineID  = req.body.engineID
+  const ids = req.body.imageIds;
+  const files = req.files
+  var b64collection = []
+  for(let i = 0; i < files.length ; i++){
+    b64collection.push(Buffer.from(files[i]).toString('base64'))
+  }
+  for(let i = 0; i < ids ;i++){
+    await client.data
     .creator()
-    .withClassName("Meme")
+    .withClassName(className)
     .withProperties({
-      image: b64,
+      image: b64collection[i],
       text: "matrix meme",
+      engineID : engineID,
+      imageID : ids[i]
     })
     .do();
+  }
+  
 };

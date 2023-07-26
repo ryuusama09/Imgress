@@ -131,18 +131,24 @@ const deleteS3Images = async function (req, res) {
     accessKeyId: "AKIA47AMLKB3ZK5V5XF2",
     secretAccessKey: "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",
   });
-  const folder = req.body.classname;
+  const dir = req.body.className;
+  var ids = req.body.imageIds 
+  var filename
   const params = {
     Bucket: "imgress-1",
-    Key: `${folder}/filename.fileExtension`,
+    Key: `${dir}/${filename}`,
   };
-
+ for(let i = 0; i < ids.length; i++){
+   filename = ids[i]
   s3.deleteObject(params, (error, data) => {
     if (error) {
       res.status(500).send(error);
     }
-    res.status(200).send("File has been deleted successfully");
+    
   });
+ }
+ res.status(200).send("Files has been deleted successfully");
+  
 };
 
 const deleteTidbContainers = async function (req, res) {
