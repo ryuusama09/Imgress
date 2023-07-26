@@ -52,6 +52,23 @@ const createInstance = async function (req, res) {
     res.status(404).json(err);
   } 
 };
+
+const deleteInstance = async function (req, res) {
+  console.log(req.body)
+  const uniqueEngineID = req.body.engineID
+  //need to connect the tidb cluster 0
+  try{
+  const sql = `delete from EngineData where engineID = ${uniqueEngineID}`;
+  const connection = connectionHelper;
+  await mysqlQuery(connection,sql).then(response=>{
+    res.status(200).json({response, "success" : true})
+  }) 
+  }catch(err){
+    res.status(404).json(err);
+  } 
+};
+
+
 const DeliverData = async function (req, res) {
   console.log(req.body)
   try{
@@ -181,4 +198,7 @@ app.get("/dev/", (req, res) => {
 app.get("/dev/welcome", (req, res) => {
   res.json({ message: "HARSH MC" });
 });
+app.post("/dev/delete-instance", async(req , res)=>{
+  deleteInstance(req, res)
+})
 
