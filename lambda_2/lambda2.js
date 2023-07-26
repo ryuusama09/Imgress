@@ -32,38 +32,58 @@ const uploadS3Img = async function (req) {
     accessKeyId: "AKIA47AMLKB3ZK5V5XF2",
     secretAccessKey: "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",
   });
-  const filePath = "C:/Users/ryusama09/Downloads/back-2.avif";
-  const fileContent = fs.readFileSync(filePath);
-  const key = `${req.body.classname}/${req.files.filename}`;
-  const params = {
-    Bucket: "imgress-1",
-    Body: fileContent,
-    Key: key,
-  };
-
+ // const filePath = "C:/Users/ryusama09/Downloads/back-2.avif";
+ const files = req.files;
+ const ids = req.body.imageIds
+ const classname = req.body.className;
+ const params = {
+  Bucket: "imgress-1",
+  Body: '',
+  Key: '',
+};
+const links =[]
+ for(let i = 0;i < files.length ; i++){
+  const key = `${req.body.classname}/${ids[i]}`;
+  params.Key = key;
+  params.Body = files[i];
+ 
   s3.upload(params, function (err, data) {
     if (err) {
       console.log("Error uploading file:", err);
     } else {
       console.log("File uploaded successfully. File location:", data.Location);
       //res.status(200).send(data.Location)
-      return data.location;
+      links.push(data.location);
     }
   });
+ }
+ return links;
+
+
 };
 
-const uploadTidb = function (req, res) {
+const uploadTidb = async function (req, res) {
   // how can we upload imgs to imgdb
   console.log(req.files, 'hi', req.body);
-  return res.send({
-    message: "hello",
-  });
-  const location = uploadS3Img(req);
+  const links = uploadS3Img(req);
   const className = req.body.className;
-  const imageId = req.body.imageId;
-  const sql =
-    "insert into imageData(engineId , image , className) where ( ? , ? , ? )";
-  const values = [];
+  const ids= req.body.imageIds;
+  const engineID = req.body.engineID;
+  const sql ="insert into imageData(engineId , image , className) where ( ? , ? , ? )";
+  const values = []
+  let connection = connectionHelper
+  connection.config.database = 'imgdb';
+  for(let i = 0; i < ids.length; i++){
+    values.push(engineID);
+    values.push(links[i]);
+    values.push(className);
+    try{
+      await mysqlQuery(connection ,sql , values)
+    }catch(err){
+           res.status(500).json({success : false})
+    }
+  }
+  res.status(200).send('uploaded succesfully') 
 };
 
 const deleteS3container = async function (bucket, dir) {
