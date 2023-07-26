@@ -60,7 +60,7 @@ const deleteInstance = async function (req, res) {
   //need to connect the tidb cluster 0
   for(let i = 0;i < uniqueEngineID.length; i++){
   try{
-  const sql = `delete from EngineData where engineID = ${uniqueEngineID[i]}`;
+  const sql = `delete from EngineData where engineID = '${uniqueEngineID[i]}'`;
   const connection = connectionHelper;
   await mysqlQuery(connection,sql).then(response=>{
     res.status(200).json({response, "success" : true})
@@ -71,11 +71,27 @@ const deleteInstance = async function (req, res) {
 }
 };
 
-
 const DeliverData = async function (req, res) {
   console.log(req.body)
   try{
-  const sql = `SELECT * FROM EngineData WHERE userID = '${req.body.userID}' `;
+  const sql = `SELECT * FROM EngineData WHERE userID = '${req.body.userID}'`;
+  const connection = connectionHelper
+  await mysqlQuery(connection , sql).then(
+    response=>{
+      res.status(200).send(response)
+    }
+  )
+  }catch(err){
+    res.status(404).json(err);
+  }
+
+  // connection.end();
+};
+
+const DeliverEngine = async function (req, res) {
+  console.log(req.body)
+  try{
+  const sql = `SELECT * FROM EngineData WHERE engineID = '${req.body.engineID}'`;
   const connection = connectionHelper
   await mysqlQuery(connection , sql).then(
     response=>{
@@ -185,6 +201,9 @@ app.post("/dev/create-instance", async(req, res) => {
 });
 app.post("/dev/guireturn", async (req, res) => {
   DeliverData(req, res);
+});
+app.post("/dev/get-engine", async (req, res) => {
+  DeliverEngine(req, res);
 });
 app.post("/dev/login", async(req, res)=>{
   loginHandler(req , res);
