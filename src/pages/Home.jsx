@@ -9,9 +9,13 @@ import { IoAddCircleOutline, IoTrashBin } from "react-icons/io5";
 import { HiChevronUpDown, HiCheck } from "react-icons/hi2";
 import { HiDotsVertical, HiOutlineDocumentDuplicate } from "react-icons/hi";
 import { RiFolderUploadLine } from "react-icons/ri";
+import { SiLinuxcontainers } from "react-icons/si";
+import { TbContainer } from "react-icons/tb";
 import { LuFolderEdit } from "react-icons/lu";
+import { BsStack } from "react-icons/bs";
 import logo from "../assets/logo.png";
 import "react-toastify/dist/ReactToastify.css";
+import axios from "axios";
 
 const AddContainer = ({ isOpen, setIsOpen }) => {
   const user = useStore((state) => state.user);
@@ -57,10 +61,10 @@ const AddContainer = ({ isOpen, setIsOpen }) => {
           progress: undefined,
           theme: "light",
         });
-        console.log(result)
+        console.log(result);
       })
       .catch((error) => {
-        console.log("error", error)
+        console.log("error", error);
         toast.error("Error Creating Container");
       });
     setData({
@@ -72,7 +76,7 @@ const AddContainer = ({ isOpen, setIsOpen }) => {
       dataType: "String",
     });
     setIsOpen(false);
-  }
+  };
   return (
     <Transition appear show={isOpen} as={Fragment}>
       <Dialog
@@ -265,9 +269,10 @@ const Home = () => {
   ];
   const navigate = useNavigate();
   const [modalIsOpen, setIsOpen] = useState(false);
-  const [deleteModal, setDeleteModal] = useState(false)
+  const [deleteModal, setDeleteModal] = useState(false);
   const [containers, setContainers] = useState(null);
-  const [select, setSelect] = useState(false)
+  const [select, setSelect] = useState(false);
+  const [selectedContainers, setSelectedContainers] = useState([])
   const user = useStore((state) => state.user);
   const logout = useStore((state) => state.logout);
   const getContainers = () => {
@@ -291,17 +296,55 @@ const Home = () => {
             selected: false,
           };
         });
-        console.log(newData); 
+        console.log(newData);
         setContainers(newData);
       })
       .catch((error) => console.log("error", error));
-  }
-  const deleteContainer = (id) => {
-
-  }
+  };
+  // const deleteContainer = async (id) => {
+  //   let arr = [...id]
+  //   console.log(arr)
+  //   axios
+  //     .all([
+  //       axios.post("http://localhost:3003/dev/delete-instance", {
+  //         engineID: arr,
+  //       }),
+  //     ])
+  //     .then(axios.spread((data) => {}));
+  // };
+  const deleteSelectedContainer = async () => {
+    console.log(selectedContainers)
+    axios
+      .all([
+        axios.post("http://localhost:3003/dev/delete-instance", {
+          engineID: selectedContainers,
+        }),
+      ])
+      .then(axios.spread((data) => {
+        toast.success("Container Deleted", {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
+        getContainers()
+        setSelectedContainers([])
+        selectAll(false)
+        setDeleteModal(false);
+      }));
+  };
   const selectContainer = (id) => {
     const newData = containers?.map((item) => {
       if (item.engineID === id) {
+        if(item.selected) {
+          setSelectedContainers(selectedContainers.filter(item => item !== id))
+        } else {
+          setSelectedContainers([...selectedContainers, id])
+        }
         return {
           ...item,
           selected: !item.selected,
@@ -311,8 +354,13 @@ const Home = () => {
       }
     });
     setContainers(newData);
-  }
+  };
   const selectAll = (data) => {
+    if (!data) {
+      setSelectedContainers([])
+    } else {
+      setSelectedContainers(containers?.map(item => item.engineID))
+    }
     const newData = containers?.map((item) => {
       return {
         ...item,
@@ -320,7 +368,7 @@ const Home = () => {
       };
     });
     setContainers(newData);
-  }
+  };
   useEffect(() => {
     if (user === null) {
       navigate("/login");
@@ -330,7 +378,7 @@ const Home = () => {
     getContainers();
   }, [modalIsOpen]);
   useEffect(() => {
-    selectAll(select)
+    selectAll(select);
   }, [select]);
   return (
     <div className="min-h-screen px-24 py-6 bg-[#E6EEFF]">
@@ -396,17 +444,7 @@ const Home = () => {
                       type="button"
                       className="inline-flex justify-center rounded-md mr-2 border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
                       onClick={() => {
-                        toast.success("Container Deleted", {
-                          position: "bottom-right",
-                          autoClose: 5000,
-                          hideProgressBar: false,
-                          closeOnClick: true,
-                          pauseOnHover: true,
-                          draggable: true,
-                          progress: undefined,
-                          theme: "light",
-                        });
-                        setDeleteModal(false);
+                        deleteSelectedContainer();
                       }}
                     >
                       Delete
@@ -414,7 +452,11 @@ const Home = () => {
                     <button
                       type="button"
                       className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
-                      onClick={() => setDeleteModal(false)}
+                      onClick={() => {
+                        setSelectedContainers([]);
+                        selectAll(false);
+                        setDeleteModal(false);
+                      }}
                     >
                       Nope
                     </button>
@@ -442,7 +484,7 @@ const Home = () => {
           <h1 className="text-3xl font-semibold">Containers</h1>
           <div className="flex gap-2">
             <button
-              onClick={() => setIsOpen(true)}
+              onClick={() => setDeleteModal(true)}
               className="inline-flex justify-center rounded-md mr-2 border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
             >
               Delete Selected
@@ -464,7 +506,7 @@ const Home = () => {
                 checked={select}
                 onChange={() => setSelect(!select)}
               />
-              <GoContainer />
+              <BsStack />
             </div>
             <div className="col-span-2">Name</div>
             <div className="col-span-7">Url</div>
@@ -485,7 +527,7 @@ const Home = () => {
                   checked={item.selected}
                   onChange={() => selectContainer(item.engineID)}
                 />
-                <GoContainer />
+                <BsStack />
               </div>
               <div className="col-span-2">{item.name}</div>
               <div className="col-span-7 flex justify-between items-center">
@@ -560,7 +602,10 @@ const Home = () => {
                         <Menu.Item>
                           {({ active }) => (
                             <button
-                              onClick={() => setDeleteModal(true)}
+                              onClick={() => {
+                                setSelectedContainers([item.engineID]);
+                                setDeleteModal(true);
+                              }}
                               className={`${
                                 active
                                   ? "bg-red-500 text-white"

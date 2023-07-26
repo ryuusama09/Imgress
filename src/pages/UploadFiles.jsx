@@ -1,7 +1,8 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { MdArrowBack, MdDelete } from "react-icons/md";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import { v4 } from "uuid";
 const imageData = [
   {
     id: "2323",
@@ -40,14 +41,46 @@ const imageData = [
   },
 ];
 const UploadFiles = () => {
+  const {engineId} = useParams();
+  const [container, setContainer] = useState(null)
   const [folder, setFolder] = useState([]);
   const navigate = useNavigate();
+  const getContainer = () => {
+    var myHeaders = new Headers();
+    myHeaders.append("Content-Type", "application/json");
+    var raw = JSON.stringify({
+      engineID: engineId,
+    });
+    var requestOptions = {
+      method: "POST",
+      headers: myHeaders,
+      body: raw,
+      redirect: "follow",
+    };
+    fetch("http://localhost:3003/dev/get-engine", requestOptions)
+      .then((response) => response.text())
+      .then((result) => {
+        const newData = JSON.parse(result)
+        console.log(newData);
+        setContainer(newData);
+      })
+      .catch((error) => console.log("error", error));
+  };
   const uploadFiles = async () => {
     console.log(folder);
     var formData = new FormData();
+    let ids = []
     for (var i = 0; i < folder.length; i++) {
       console.log(folder[i]);
-      formData.append(`files`, folder[i]);
+      ids.push(v4())
+      formData.append("files", folder[i]);
+    }
+    console.log(ids);
+    formData.append("imageIds", ids);
+    formData.append("engineId", engineId);
+    formData.append("className", container[0].class);
+    for (var pair of formData.entries()) {
+      console.log(pair[0] + ", " + pair[1]);
     }
     const config = {
       headers: {
@@ -55,12 +88,16 @@ const UploadFiles = () => {
       },
     };
     const response = await axios.post(
-      "http://localhost:3004/dev/upload-images",
+      "http://localhost:3004/dev/upload",
       formData,
       config
     );
     console.log(response);
   };
+  useEffect(() => {
+    getContainer()
+  }, [engineId])
+  
   return (
     <div className="p-8 min-w-screen min-h-screen bg-[#E6EEFF]">
       <MdArrowBack
