@@ -27,24 +27,28 @@ const imageData = [
   {
     id: "2327",
     imageUrl:
-      "https://contents.mediadecathlon.com/p2326305/b1c775bac058ef51e46a3978153bb972/p2326305.jpg",
-  },
-  {
-    id: "2328",
-    imageUrl:
-      "https://contents.mediadecathlon.com/p2326305/b1c775bac058ef51e46a3978153bb972/p2326305.jpg",
-  },
-  {
-    id: "2328",
-    imageUrl:
-      "https://contents.mediadecathlon.com/p2326305/b1c775bac058ef51e46a3978153bb972/p2326305.jpg",
+      "https://imgress-1.s3.amazonaws.com/MyContainer98b3c86a-77f5-4157-8ec2-5c19b77c74e7/712e6077-c5f0-42a6-b9c2-50dcaeed6012",
   },
 ];
 const UploadFiles = () => {
-  const {engineId} = useParams();
-  const [container, setContainer] = useState(null)
+  const { engineId } = useParams();
+  const [container, setContainer] = useState(null);
   const [folder, setFolder] = useState([]);
+  const [images, setImages] = useState([]);
   const navigate = useNavigate();
+  useEffect(() => {
+    getImages();
+  }, []);
+
+  const getImages = async () => {
+    const data = { engineID: engineId };
+    const response = await axios.post(
+      "http://localhost:3003/dev/imglist",
+      data
+    );
+    console.log(response.data);
+    setImages(response.data);
+  };
   const getContainer = () => {
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
@@ -60,7 +64,7 @@ const UploadFiles = () => {
     fetch("http://localhost:3003/dev/get-engine", requestOptions)
       .then((response) => response.text())
       .then((result) => {
-        const newData = JSON.parse(result)
+        const newData = JSON.parse(result);
         console.log(newData);
         setContainer(newData);
       })
@@ -69,19 +73,20 @@ const UploadFiles = () => {
   const uploadFiles = async () => {
     console.log(folder);
     var formData = new FormData();
-    let ids = []
+    let ids = [];
     for (var i = 0; i < folder.length; i++) {
       console.log(folder[i]);
-      ids.push(v4())
+      ids.push(v4());
       formData.append("files", folder[i]);
     }
-    console.log(ids);
+    for (var pair of formData.entries()) {
+      console.log(pair[0] + ", " + pair[1].name);
+    }
     formData.append("imageIds", ids);
     formData.append("engineId", engineId);
     formData.append("className", container[0].class);
-    for (var pair of formData.entries()) {
-      console.log(pair[0] + ", " + pair[1]);
-    }
+    console.log(ids, engineId, container[0].class);
+
     const config = {
       headers: {
         "Content-Type": "multipart/form-data",
@@ -93,11 +98,19 @@ const UploadFiles = () => {
       config
     );
     console.log(response);
+
+    const response2 = await axios.post(
+      "http://localhost:3005/dev/upload",
+      formData,
+      config
+    );
+    console.log(response2);
+    getImages();
   };
   useEffect(() => {
-    getContainer()
-  }, [engineId])
-  
+    getContainer();
+  }, [engineId]);
+
   return (
     <div className="p-8 min-w-screen min-h-screen bg-[#E6EEFF]">
       <MdArrowBack
@@ -126,9 +139,9 @@ const UploadFiles = () => {
         <div className="mt-4">
           <h1 className="text-black text-lg">Current Images</h1>
           <div className="flex flex-wrap justify-center gap-4">
-            {imageData.map((image) => (
+            {images?.map((image) => (
               <div className="mt-4 relative" key={image.id}>
-                <img src={image.imageUrl} width={200} height={200} />
+                <img src={image.image} width={200} height={200} />
                 <div className="absolute top-2 right-2 bg-red-500 p-1 rounded-full cursor-pointer">
                   <MdDelete color="white" size={18} />
                 </div>

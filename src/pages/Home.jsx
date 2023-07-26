@@ -27,7 +27,7 @@ const AddContainer = ({ isOpen, setIsOpen }) => {
     name: "",
     dataType: "String",
   });
-  const create = () => {
+  const create = async () => {
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
     let schema = data;
@@ -48,9 +48,10 @@ const AddContainer = ({ isOpen, setIsOpen }) => {
       body: raw,
       redirect: "follow",
     };
+
     fetch("http://localhost:3003/dev/create-instance", requestOptions)
       .then((response) => response.text())
-      .then((result) => {
+      .then(async (result) => {
         toast.success("Container created", {
           position: "bottom-right",
           autoClose: 5000,
@@ -62,11 +63,16 @@ const AddContainer = ({ isOpen, setIsOpen }) => {
           theme: "light",
         });
         console.log(result);
+
+        const res = await axios.post("http://localhost:3005/dev/create", {
+          name: JSON.parse(result).className,
+        });
       })
       .catch((error) => {
         console.log("error", error);
         toast.error("Error Creating Container");
       });
+
     setData({
       name: "",
       properties: [],
@@ -272,7 +278,7 @@ const Home = () => {
   const [deleteModal, setDeleteModal] = useState(false);
   const [containers, setContainers] = useState(null);
   const [select, setSelect] = useState(false);
-  const [selectedContainers, setSelectedContainers] = useState([])
+  const [selectedContainers, setSelectedContainers] = useState([]);
   const user = useStore((state) => state.user);
   const logout = useStore((state) => state.logout);
   const getContainers = () => {
@@ -313,37 +319,41 @@ const Home = () => {
   //     .then(axios.spread((data) => {}));
   // };
   const deleteSelectedContainer = async () => {
-    console.log(selectedContainers)
+    console.log(selectedContainers);
     axios
       .all([
         axios.post("http://localhost:3003/dev/delete-instance", {
           engineID: selectedContainers,
         }),
       ])
-      .then(axios.spread((data) => {
-        toast.success("Container Deleted", {
-          position: "bottom-right",
-          autoClose: 5000,
-          hideProgressBar: false,
-          closeOnClick: true,
-          pauseOnHover: true,
-          draggable: true,
-          progress: undefined,
-          theme: "light",
-        });
-        getContainers()
-        setSelectedContainers([])
-        selectAll(false)
-        setDeleteModal(false);
-      }));
+      .then(
+        axios.spread((data) => {
+          toast.success("Container Deleted", {
+            position: "bottom-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+          });
+          getContainers();
+          setSelectedContainers([]);
+          selectAll(false);
+          setDeleteModal(false);
+        })
+      );
   };
   const selectContainer = (id) => {
     const newData = containers?.map((item) => {
       if (item.engineID === id) {
-        if(item.selected) {
-          setSelectedContainers(selectedContainers.filter(item => item !== id))
+        if (item.selected) {
+          setSelectedContainers(
+            selectedContainers.filter((item) => item !== id)
+          );
         } else {
-          setSelectedContainers([...selectedContainers, id])
+          setSelectedContainers([...selectedContainers, id]);
         }
         return {
           ...item,
@@ -357,9 +367,9 @@ const Home = () => {
   };
   const selectAll = (data) => {
     if (!data) {
-      setSelectedContainers([])
+      setSelectedContainers([]);
     } else {
-      setSelectedContainers(containers?.map(item => item.engineID))
+      setSelectedContainers(containers?.map((item) => item.engineID));
     }
     const newData = containers?.map((item) => {
       return {
