@@ -67,33 +67,34 @@ const uploadS3Img = async (req) => {
   return links;
 };
 
-const uploadTidb = async (req, res) => {
+const uploadTidb = async function (req, res) {
   // how can we upload imgs to imgdb
   // console.log(req.files, "hi", req.body);
   const links = await uploadS3Img(req);
   console.log(links, "hi");
   const className = req.body.className;
   const ids = req.body.imageIds.split(",");
-  const engineID = req.body.engineID;
+  const engineID = '813144a5-0b1b-40a8-98d5-c2fc3e75ad88'
   console.log(ids, className, engineID);
-  // const sql =
-  // "insert into imageData(engineId , image , className) where ( ? , ? , ? )";
-  // let values = [];
-  // let connection = connectionHelper;
-  // connection.config.database = "imgdb";
-  // for (let i = 0; i < ids.length; i++) {
-  //   values.push(engineID);
-  //   values.push(links[i]);
-  //   values.push(className);
-  //   try {
-  //     await mysqlQuery(connection, sql, values);
-  //   } catch (err) {
-  //     res.status(500).json({ success: false });
-  //   }
-  //   values = [];
-  // }
-  // res.status(200).send("uploaded successfully");
-  return res.send(links);
+  const sql ="insert into imageData(engineId , image , className) values ( ? , ? , ?)";
+  let values = [];
+  let connection = connectionHelper;
+  connection.config.database = "imgdb";
+  for (let i = 0; i < ids.length; i++) {
+    values.push(engineID);
+    values.push(links[i]);
+    values.push(className);
+    console.log(values)
+    await mysqlQuery(connection ,sql , values).then((response , err)=>{
+         if(err !== undefined){
+            console.log(err)
+            res.status(500).send('error')
+         }
+    });
+  }
+  if(res.headersSent !== true) {
+    res.status(200).send('Hello World!');
+}
 };
 
 const deleteS3container = async function (bucket, dir) {
