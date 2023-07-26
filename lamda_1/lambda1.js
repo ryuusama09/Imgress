@@ -54,11 +54,13 @@ const createInstance = async function (req, res) {
 };
 
 const deleteInstance = async function (req, res) {
-  console.log(req.body)
-  const uniqueEngineID = req.body.engineID
+ // console.log(req.body)
+  let uniqueEngineID = []
+  uniqueEngineID = req.body.engineID
   //need to connect the tidb cluster 0
+  for(let i = 0;i < uniqueEngineID.length; i++){
   try{
-  const sql = `delete from EngineData where engineID = ${uniqueEngineID}`;
+  const sql = `delete from EngineData where engineID = ${uniqueEngineID[i]}`;
   const connection = connectionHelper;
   await mysqlQuery(connection,sql).then(response=>{
     res.status(200).json({response, "success" : true})
@@ -66,6 +68,7 @@ const deleteInstance = async function (req, res) {
   }catch(err){
     res.status(404).json(err);
   } 
+}
 };
 
 

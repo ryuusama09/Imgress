@@ -31,7 +31,6 @@ const uploadS3Img = async function (req){
 s3.config.update({
   accessKeyId: 'AKIA47AMLKB3ZK5V5XF2',
   secretAccessKey: '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',
- 
 });
 const filePath = 'C:/Users/ryusama09/Downloads/back-2.avif'
 const fileContent = fs.readFileSync(filePath);
