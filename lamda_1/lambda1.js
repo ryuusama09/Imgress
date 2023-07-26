@@ -23,7 +23,7 @@ if (process.env.ENVIRONMENT === "lambda") {
 
 const apiGenerator = function (engineName, engineID) {
   const key = engineName + engineID;
-  return `http://localhost3005/dev/fetch/${key}`;
+  return `http://localhost:3005/dev/fetch/${key}`;
 };
 const classGenerator = function (engineName, engineID) {
   return engineName + engineID;

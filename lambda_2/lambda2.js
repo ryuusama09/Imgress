@@ -26,14 +26,16 @@ if (process.env.ENVIRONMENT === "lambda") {
   });
 }
 
-const uploadS3Img = function (req) {
+const uploadS3Img = async (req) => {
   const s3 = new AWS.S3();
   s3.config.update({
     accessKeyId: "AKIA47AMLKB3ZK5V5XF2",
     secretAccessKey: "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",
   });
+  let links = [];
   // const filePath = "C:/Users/ryusama09/Downloads/back-2.avif";
   const files = req.files;
+  console.log(files);
   const ids = req.body.imageIds.split(",");
   const classname = req.body.className;
   const params = {
@@ -41,12 +43,11 @@ const uploadS3Img = function (req) {
     Body: "",
     Key: "",
   };
-  const links = [];
   for (let i = 0; i < files.length; i++) {
     const key = `${classname}/${ids[i]}`;
     params.Key = key;
     params.Body = files[i].buffer;
-    new Promise((resolve, reject) => {
+    await new Promise((resolve, reject) => {
       s3.upload(params, function (err, data) {
         if (err) {
           reject(err);
@@ -66,11 +67,10 @@ const uploadS3Img = function (req) {
   return links;
 };
 
-const uploadTidb = function (req, res) {
+const uploadTidb = async (req, res) => {
   // how can we upload imgs to imgdb
   // console.log(req.files, "hi", req.body);
-  let data = [];
-  const links = uploadS3Img(req);
+  const links = await uploadS3Img(req);
   console.log(links, "hi");
   const className = req.body.className;
   const ids = req.body.imageIds.split(",");
