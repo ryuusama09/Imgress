@@ -175,15 +175,26 @@ const signUpHandler = async function (req, res) {
 };
 
 const getImgList = async function (req, res) {
+  console.log("Hello", req.body.engineID);
   const engineID = req.body.engineID;
   const sql = `SELECT * from imageData WHERE engineId = '${engineID}' `;
-  const connection = connectionHelper;
-  connection.config.database = "imgdb";
+  const connectionHelper = mysql.createConnection({
+    host: "gateway01.eu-central-1.prod.aws.tidbcloud.com",
+    port: 4000, // default TiDB port is 4000
+    user: "3dgtwFUbG2B7Tr1.root",
+    password: "3NFEh6DwOFfkQvsz",
+    database: "imgdb",
+    ssl: {
+      minVersion: "TLSv1.2",
+      rejectUnauthorized: true,
+    },
+  });
   try {
-    await mysqlQuery(connection, sql).then((response) => {
+    await mysqlQuery(connectionHelper, sql).then((response) => {
       res.status(200).send(response);
     });
   } catch (err) {
+    console.log(err);
     res.status(500).json({ success: false });
   }
 };
@@ -203,7 +214,7 @@ app.post("/dev/login", async (req, res) => {
 app.post("/dev/signup", async (req, res) => {
   signUpHandler(req, res);
 });
-app.get("/dev/imglist", async (req, res) => {
+app.post("/dev/imglist", async (req, res) => {
   getImgList(req, res);
 });
 app.get("/dev/", (req, res) => {

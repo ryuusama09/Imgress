@@ -195,26 +195,30 @@ const fetchImage = async function (req, res) {
   res.send(result);
 };
 
-const upload = async function (req, res) {
-  const className = req.body.className
-  const engineID  = req.body.engineID
-  const ids = req.body.imageIds;
-  const files = req.files
-  var b64collection = []
-  for(let i = 0; i < files.length ; i++){
-    b64collection.push(Buffer.from(files[i]).toString('base64'))
+const uploadWeavita = async (req, className, engineID, ids) => {
+  console.log(req.files);
+  const files = req.files;
+  var b64collection = [];
+  for (let i = 0; i < files.length; i++) {
+    b64collection.push(Buffer.from(files[i]).toString("base64"));
   }
-  for(let i = 0; i < ids ;i++){
+  for (let i = 0; i < ids; i++) {
     await client.data
-    .creator()
-    .withClassName(className)
-    .withProperties({
-      image: b64collection[i],
-      text: "matrix meme",
-      engineID : engineID,
-      imageID : ids[i]
-    })
-    .do();
+      .creator()
+      .withClassName(className)
+      .withProperties({
+        image: b64collection[i],
+        text: "matrix meme",
+        engineID: engineID,
+        imageID: ids[i],
+      })
+      .do();
   }
-  
+};
+
+const upload = async function (req, res) {
+  const className = req.body.className;
+  const engineID = req.body.engineID;
+  const ids = req.body.imageIds;
+  const response = await uploadWeavita(req, className, engineID, ids);
 };

@@ -74,27 +74,39 @@ const uploadTidb = async function (req, res) {
   console.log(links, "hi");
   const className = req.body.className;
   const ids = req.body.imageIds.split(",");
-  const engineID = '813144a5-0b1b-40a8-98d5-c2fc3e75ad88'
+  const engineID = req.body.engineId;
   console.log(ids, className, engineID);
-  const sql ="insert into imageData(engineId , image , className) values ( ? , ? , ?)";
-  let values = [];
-  let connection = connectionHelper;
-  connection.config.database = "imgdb";
+  const sql =
+    "insert into imageData(engineId , image , className) values ( ? , ? , ?)";
+
+  const connectionHelper = mysql.createConnection({
+    host: "gateway01.eu-central-1.prod.aws.tidbcloud.com",
+    port: 4000, // default TiDB port is 4000
+    user: "3dgtwFUbG2B7Tr1.root",
+    password: "3NFEh6DwOFfkQvsz",
+    database: "imgdb",
+    ssl: {
+      minVersion: "TLSv1.2",
+      rejectUnauthorized: true,
+    },
+  });
   for (let i = 0; i < ids.length; i++) {
+    let values = [];
     values.push(engineID);
     values.push(links[i]);
     values.push(className);
-    console.log(values)
-    await mysqlQuery(connection ,sql , values).then((response , err)=>{
-         if(err !== undefined){
-            console.log(err)
-            res.status(500).send('error')
-         }
+    console.log(values);
+    await mysqlQuery(connectionHelper, sql, values).then((response, err) => {
+      console.log(response);
+      if (err !== undefined) {
+        console.log(err);
+        res.status(500).send("error");
+      }
     });
   }
-  if(res.headersSent !== true) {
-    res.status(200).send('Hello World!');
-}
+  if (res.headersSent !== true) {
+    res.status(200).send("Hello World!");
+  }
 };
 
 const deleteS3container = async function (bucket, dir) {
@@ -132,23 +144,21 @@ const deleteS3Images = async function (req, res) {
     secretAccessKey: "VFxL8wyqwEdt/TQr68zn86slnmVOS4rPi0hGnzhu",
   });
   const dir = req.body.className;
-  var ids = req.body.imageIds 
-  var filename
+  var ids = req.body.imageIds;
+  var filename;
   const params = {
     Bucket: "imgress-1",
     Key: `${dir}/${filename}`,
   };
- for(let i = 0; i < ids.length; i++){
-   filename = ids[i]
-  s3.deleteObject(params, (error, data) => {
-    if (error) {
-      res.status(500).send(error);
-    }
-    
-  });
- }
- res.status(200).send("Files has been deleted successfully");
-  
+  for (let i = 0; i < ids.length; i++) {
+    filename = ids[i];
+    s3.deleteObject(params, (error, data) => {
+      if (error) {
+        res.status(500).send(error);
+      }
+    });
+  }
+  res.status(200).send("Files has been deleted successfully");
 };
 
 const deleteTidbContainers = async function (req, res) {
