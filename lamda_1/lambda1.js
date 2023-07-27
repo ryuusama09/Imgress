@@ -221,6 +221,49 @@ const getLogs = async (req, res) => {
   });
 };
 
+const giveAccess = async(req ,res)=>{
+  const owner = req.body.owner;
+  const connection = connectionHelper;
+  const engineID = req.body.engineID
+  const sql = `insert into access(owner , child, engineID) values(?,?,?)'`;
+  const sqlfetch = `select UserID from userData where email = '${email}'`
+  const values = []
+  await mysqlQuery(connection, sqlfetch).then((response) => {
+    values.push(owner);
+    values.push(response.UserID)
+    values.push(engineID)
+    mysqlQuery(connection,sql,values).then((response2)=>{
+      res.status(200).send(response, response2);
+    });
+  });
+}
+const takeAccess = async(req ,res)=>{
+  const owner = req.body.owner;
+  const email = req.body.email;
+  const engineID = req.body.engineID
+  const connection = connectionHelper;
+  let child
+  const sql = `delete from access where owner = '${owner} and child = '${child}' and engineID = '${engineID}'`;
+  const sqlfetch = `select UserID from userData where email = '${email}'`
+  await mysqlQuery(connection, sqlfetch).then((response) => {
+    child = response.UserID
+    mysqlQuery(connection, sql).then((response2) => {
+      res.status(200).send(response ,response2);
+    });
+  });
+  
+ 
+}
+const getAcessList = async(req ,res)=>{
+  const owner = req.body.owner;
+  const connection = connectionHelper;
+ // const email = req.body.email
+  const sql = `select * from access where owner = '${owner}'`;
+  await mysqlQuery(connection, sql).then((response) => {
+    res.status(200).send(response);
+  });
+}
+
 app.post("/dev/create-instance", async (req, res) => {
   createInstance(req, res);
 });
