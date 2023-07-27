@@ -10,12 +10,12 @@ import { HiChevronUpDown, HiCheck } from "react-icons/hi2";
 import { HiDotsVertical, HiOutlineDocumentDuplicate } from "react-icons/hi";
 import { RiFolderUploadLine } from "react-icons/ri";
 import { SiLinuxcontainers } from "react-icons/si";
-import { TbContainer } from "react-icons/tb";
-import { LuFolderEdit } from "react-icons/lu";
+import { TbTrash } from "react-icons/tb";
+import { LuFolderEdit, LuPlay } from "react-icons/lu";
 import { BsStack } from "react-icons/bs";
 import logo from "../assets/logo.png";
-import "react-toastify/dist/ReactToastify.css";
 import axios from "axios";
+import "react-toastify/dist/ReactToastify.css";
 
 const AddContainer = ({ isOpen, setIsOpen }) => {
   const user = useStore((state) => state.user);
@@ -325,9 +325,16 @@ const Home = () => {
         axios.post("http://localhost:3003/dev/delete-instance", {
           engineID: selectedContainers,
         }),
+        axios.post("http://localhost:3004/dev/deletetidbcont", {
+          engineID: selectedContainers,
+        }),
+        axios.post("http://localhost:3004/dev/deletes3cont", {
+          classname: selectedContainers,
+        }),
       ])
       .then(
-        axios.spread((data) => {
+        axios.spread((...res) => {
+          console.log(res);
           toast.success("Container Deleted", {
             position: "bottom-right",
             autoClose: 5000,
@@ -391,7 +398,7 @@ const Home = () => {
     selectAll(select);
   }, [select]);
   return (
-    <div className="min-h-screen px-24 py-6 bg-[#E6EEFF]">
+    <div className="min-h-screen px-24 py-6 bg-gradient-to-r to-cyan-100 from-sky-300">
       <ToastContainer />
       <AddContainer isOpen={modalIsOpen} setIsOpen={setIsOpen} />
       {/* <h1>Hello</h1>
@@ -461,7 +468,7 @@ const Home = () => {
                     </button>
                     <button
                       type="button"
-                      className="inline-flex justify-center rounded-md border border-transparent bg-blue-100 px-4 py-2 text-sm font-medium text-blue-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-sky-100 px-4 py-2 text-sm font-medium text-sky-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2"
                       onClick={() => {
                         setSelectedContainers([]);
                         selectAll(false);
@@ -479,29 +486,30 @@ const Home = () => {
       </Transition>
       <div className="w-full flex justify-between items-center">
         <div className="flex">
-          <img src={logo} className="max-w-[40px] mr-3" />
-          <h1 className="text-3xl font-medium">Dashboard</h1>
+          <img src={logo} className="w-28 mr-3" />
         </div>
         <button
-          className="bg-blue-500 text-white p-2 rounded-md"
+          className="bg-sky-500 text-white p-2 rounded-md"
           onClick={() => logout()}
         >
           Logout
         </button>
       </div>
-      <div className="shadow rounded-xl bg-white my-6 py-6 px-8">
+      <div className="shadow-xl rounded-xl bg-white my-6 py-6 px-8">
         <div className="w-full flex justify-between items-center mt-2">
           <h1 className="text-3xl font-semibold">Containers</h1>
           <div className="flex gap-2">
-            <button
-              onClick={() => setDeleteModal(true)}
-              className="inline-flex justify-center rounded-md mr-2 border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
-            >
-              Delete Selected
-            </button>
+            {selectedContainers.length ? (
+              <button
+                onClick={() => setDeleteModal(true)}
+                className="inline-flex justify-center rounded-md mr-2 bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200"
+              >
+                Delete Selected
+              </button>
+            ) : null}
             <button
               onClick={() => setIsOpen(true)}
-              className="bg-blue-500 text-sm text-white px-4 py-2 rounded-md"
+              className="bg-sky-500 text-sm font-medium text-white px-4 py-2 rounded-md"
             >
               Add
             </button>
@@ -509,54 +517,89 @@ const Home = () => {
         </div>
         <div className=" mt-6 flex flex-col gap-2 col">
           <div className="grid grid-cols-12 font-medium gap-2 py-2 text-xl">
-            <div className="col-span-1 flex items-center justify-evenly">
+            <div className="w-full col-span-1 flex items-center border-r-2 border-gray-300">
               <input
                 type="checkbox"
-                className="w-5 h-5"
+                className="w-5 h-5 mx-auto"
                 checked={select}
                 onChange={() => setSelect(!select)}
               />
-              <BsStack />
             </div>
+            <BsStack className="col-span-1 mx-auto" />
             <div className="col-span-2">Name</div>
-            <div className="col-span-7">Url</div>
-            <div className="col-span-1 ml-auto">Upload</div>
-            <div className="col-span-1"></div>
+            <div className="col-span-6">Url</div>
+            <div className="col-span-2 mx-auto">Actions</div>
           </div>
           {containers?.map((item, index) => (
             <div
               key={index}
               className={`grid grid-cols-12 items-center gap-2 py-2 rounded-md ${
-                item.selected && "bg-blue-200"
+                item.selected && "bg-sky-100"
               }`}
             >
-              <div className="col-span-1 flex items-center justify-evenly text-xl">
+              <div className="w-full col-span-1 py-1 flex items-center border-r-2 border-gray-300">
                 <input
                   type="checkbox"
-                  className="w-5 h-5"
+                  className="w-5 h-5 mx-auto"
                   checked={item.selected}
                   onChange={() => selectContainer(item.engineID)}
                 />
-                <BsStack />
               </div>
+              <BsStack className="col-span-1 mx-auto text-xl" />
               <div className="col-span-2">{item.name}</div>
-              <div className="col-span-7 flex justify-between items-center">
-                <h1 className="">{item.apiURL}</h1>
+              <div className="col-span-6 text-2xl flex">
+                <h1 className="truncate text-base flex-grow">{item.apiURL}</h1>
                 <CopyToClipboard
-                  className="text-2xl cursor-pointer"
+                  className="shrink-0 cursor-pointer"
                   text={item.apiURL}
+                  onCopy={() => {
+                    toast.success("Copied to clipboard", {
+                      position: "bottom-right",
+                      autoClose: 5000,
+                      hideProgressBar: false,
+                      closeOnClick: true,
+                      pauseOnHover: true,
+                      draggable: true,
+                      progress: undefined,
+                      theme: "light",
+                    });
+                  }}
                 >
-                  <GoCopy />
+                  <GoCopy className="" />
                 </CopyToClipboard>
               </div>
-              <Link
-                to={"/upload-files/" + item.engineID}
-                className="col-span-1 ml-auto"
-              >
-                <RiFolderUploadLine className="text-2xl" />
-              </Link>
-              <div className="col-span-1">
-                <Menu
+              <div className="col-span-2 text-2xl flex justify-evenly">
+                <Link
+                  to={"/upload-files/" + item.engineID}
+                  className="rounded-full p-2 hover:bg-gray-200 group relative"
+                >
+                  <LuPlay className="" />
+                  <div class="opacity-0 bg-gray-300 text-black text-center text-xs rounded-lg py-2 absolute z-10 group-hover:opacity-100 bottom-full -left-1/4 mb-1 px-3 pointer-events-none">
+                    Test
+                  </div>
+                </Link>
+                <Link
+                  to={"/upload-files/" + item.engineID}
+                  className="rounded-full p-2 hover:bg-gray-200 group relative"
+                >
+                  <RiFolderUploadLine className="" />
+                  <div class="opacity-0 bg-gray-300 text-black text-center text-xs rounded-lg py-2 absolute z-10 group-hover:opacity-100 bottom-full -left-1/4 mb-1 px-3 pointer-events-none">
+                    Manage
+                  </div>
+                </Link>
+                <div
+                  onClick={() => {
+                    setSelectedContainers([item.engineID]);
+                    setDeleteModal(true);
+                  }}
+                  className="rounded-full p-2 hover:bg-gray-200 group relative"
+                >
+                  <TbTrash className="cursor-pointer" />
+                  <div class="opacity-0 bg-gray-300 text-black text-center text-xs rounded-lg py-2 absolute z-10 group-hover:opacity-100 bottom-full -left-1/4 mb-1 px-3 pointer-events-none">
+                    Delete
+                  </div>
+                </div>
+                {/* <Menu
                   as="div"
                   className="w-full relative inline-block text-left"
                 >
@@ -584,7 +627,7 @@ const Home = () => {
                             <button
                               className={`${
                                 active
-                                  ? "bg-blue-500 text-white"
+                                  ? "bg-sky-500 text-white"
                                   : "text-gray-900"
                               } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
                             >
@@ -598,7 +641,7 @@ const Home = () => {
                             <button
                               className={`${
                                 active
-                                  ? "bg-blue-500 text-white"
+                                  ? "bg-sky-500 text-white"
                                   : "text-gray-900"
                               } group flex w-full items-center rounded-md px-2 py-2 text-sm`}
                             >
@@ -630,7 +673,7 @@ const Home = () => {
                       </div>
                     </Menu.Items>
                   </Transition>
-                </Menu>
+                </Menu> */}
               </div>
             </div>
           ))}
