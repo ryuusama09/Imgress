@@ -3,6 +3,11 @@ import { MdArrowBack, MdDelete } from "react-icons/md";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { v4 } from "uuid";
+import Loading from "./Loading";
+import { LuPlay } from "react-icons/lu";
+import { TbTrash } from "react-icons/tb";
+import { RiFolderUploadLine } from "react-icons/ri";
+import { Tab } from "@headlessui/react";
 const imageData = [
   {
     id: "2323",
@@ -30,16 +35,44 @@ const imageData = [
       "https://imgress-1.s3.amazonaws.com/MyContainer98b3c86a-77f5-4157-8ec2-5c19b77c74e7/712e6077-c5f0-42a6-b9c2-50dcaeed6012",
   },
 ];
+
+const Card = ({ image }) => {
+  return (
+    <div key={image.id} className="block rounded-lg bg-white shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)]">
+      <a href="#!">
+        <img
+          class="rounded-t-lg"
+          src={image.image}
+          alt=""
+        />
+      </a>
+      <div class="p-6">
+        <h5 class="mb-2 text-xl font-medium leading-tight text-neutral-800">
+          Card title
+        </h5>
+        <p class="mb-4 text-base text-neutral-600 ">
+          Some quick example text to build on the card title and make up the
+          bulk of the card's content.
+        </p>
+        <button
+          type="button"
+          class="inline-flex justify-center items-center gap-1 rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200"
+          data-te-ripple-init
+          data-te-ripple-color="light"
+        >
+          Button
+        </button>
+      </div>
+    </div>
+  );
+}
 const UploadFiles = () => {
   const { engineId } = useParams();
   const [container, setContainer] = useState(null);
   const [folder, setFolder] = useState([]);
   const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate();
-  useEffect(() => {
-    getImages();
-  }, []);
-
   const getImages = async () => {
     const data = { engineID: engineId };
     const response = await axios.post(
@@ -48,6 +81,7 @@ const UploadFiles = () => {
     );
     console.log(response.data);
     setImages(response.data);
+    setLoading(false)
   };
   const getContainer = () => {
     var myHeaders = new Headers();
@@ -66,7 +100,8 @@ const UploadFiles = () => {
       .then((result) => {
         const newData = JSON.parse(result);
         console.log(newData);
-        setContainer(newData);
+        setContainer(newData[0]);
+        getImages();
       })
       .catch((error) => console.log("error", error));
   };
@@ -110,17 +145,38 @@ const UploadFiles = () => {
   useEffect(() => {
     getContainer();
   }, [engineId]);
-
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col px-24 py-6 bg-gradient-to-r from-cyan-100 to-sky-300">
+        <Loading />
+      </div>
+    );
+  }
   return (
-    <div className="p-8 min-w-screen min-h-screen bg-[#E6EEFF]">
+    <div className="min-h-screen px-24 py-6 bg-gradient-to-r from-cyan-100 to-sky-300">
       <MdArrowBack
         className="cursor-pointer"
         onClick={() => navigate(-1)}
         size={28}
       />
       <div className="mt-6">
-        <h1 className="text-gray-600 text-2xl font-medium">Container 1</h1>
-        <div className="bg-white p-4 shadow-lg mt-4 rounded flex justify-between">
+        <h1 className="text-gray-600 text-3xl font-medium">
+          {container?.name}
+        </h1>
+        <h1 className="text-gray-600 font-medium mb-4">{container?.apiURL}</h1>
+        <button className="inline-flex justify-center items-center gap-1 rounded-md mr-2 border border-transparent bg-sky-300 px-4 py-2 text-sm font-medium text-sky-900 hover:bg-sky-400">
+          <LuPlay className="" />
+          Test
+        </button>
+        <button className="inline-flex justify-center items-center gap-1 rounded-md mr-2 border border-transparent bg-sky-300 px-4 py-2 text-sm font-medium text-sky-900 hover:bg-sky-400">
+          <RiFolderUploadLine className="" />
+          Upload
+        </button>
+        <button className="inline-flex justify-center items-center gap-1 rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200">
+          <TbTrash className="" />
+          Delete
+        </button>
+        {/* <div className="bg-white p-4 shadow-lg mt-4 rounded flex justify-between">
           <h1 className="text-black text-lg">Choose a folder to upload!</h1>
           <input
             type="file"
@@ -135,20 +191,50 @@ const UploadFiles = () => {
           >
             Upload
           </button>
-        </div>
-        <div className="mt-4">
-          <h1 className="text-black text-lg">Current Images</h1>
-          <div className="flex flex-wrap justify-center gap-4">
-            {images?.map((image) => (
-              <div className="mt-4 relative" key={image.id}>
-                <img src={image.image} width={200} height={200} />
-                <div className="absolute top-2 right-2 bg-red-500 p-1 rounded-full cursor-pointer">
-                  <MdDelete color="white" size={18} />
+        </div> */}
+        <Tab.Group>
+          <Tab.List className="flex w-fit space-x-1 rounded-xl bg-blue-900/20 p-1 mt-8">
+            <Tab
+              key="Images"
+              className={({ selected }) =>
+                `rounded-lg w-36 py-2.5 text-sm font-medium leading-5 text-blue-700 ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2 ${
+                  selected
+                    ? "bg-white shadow"
+                    : "text-blue-100 hover:bg-white/[0.12] hover:text-white"
+                }`
+              }
+            >
+              Images
+            </Tab>
+            <Tab
+              key="Log"
+              className={({ selected }) =>
+                `rounded-lg w-36 py-2.5 text-sm font-medium leading-5 text-blue-700 ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2 ${
+                  selected
+                    ? "bg-white shadow"
+                    : "text-blue-100 hover:bg-white/[0.12] hover:text-white"
+                }`
+              }
+            >
+              Log
+            </Tab>
+          </Tab.List>
+          <Tab.Panels className="mt-2">
+            <Tab.Panel key="Images" className="rounded-xl bg-white p-3">
+              <div className="mt-4">
+                <h1 className="text-black text-lg">Current Images</h1>
+                <div className="grid grid-cols-3 gap-4">
+                  {images?.map((image) => (
+                    <Card image={image} />
+                  ))}
                 </div>
               </div>
-            ))}
-          </div>
-        </div>
+            </Tab.Panel>
+            <Tab.Panel key="Log" className="rounded-xl bg-white p-3">
+              Log
+            </Tab.Panel>
+          </Tab.Panels>
+        </Tab.Group>
       </div>
     </div>
   );

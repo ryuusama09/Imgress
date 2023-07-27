@@ -1,21 +1,20 @@
-import React, { Fragment, useEffect, useRef, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useStore } from "../store";
-import { Dialog, Listbox, Menu, Transition } from "@headlessui/react";
+import { Dialog, Listbox, Transition } from "@headlessui/react";
 import { ToastContainer, toast } from "react-toastify";
 import { CopyToClipboard } from "react-copy-to-clipboard";
-import { GoContainer, GoCopy } from "react-icons/go";
+import { GoCopy } from "react-icons/go";
 import { IoAddCircleOutline, IoTrashBin } from "react-icons/io5";
 import { HiChevronUpDown, HiCheck } from "react-icons/hi2";
-import { HiDotsVertical, HiOutlineDocumentDuplicate } from "react-icons/hi";
 import { RiFolderUploadLine } from "react-icons/ri";
-import { SiLinuxcontainers } from "react-icons/si";
 import { TbTrash } from "react-icons/tb";
-import { LuFolderEdit, LuPlay } from "react-icons/lu";
+import {  LuPlay } from "react-icons/lu";
 import { BsStack } from "react-icons/bs";
 import logo from "../assets/logo.png";
 import axios from "axios";
 import "react-toastify/dist/ReactToastify.css";
+import Loading from "./Loading";
 
 const AddContainer = ({ isOpen, setIsOpen }) => {
   const user = useStore((state) => state.user);
@@ -275,6 +274,7 @@ const Home = () => {
   ];
   const navigate = useNavigate();
   const [modalIsOpen, setIsOpen] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [deleteModal, setDeleteModal] = useState(false);
   const [containers, setContainers] = useState(null);
   const [select, setSelect] = useState(false);
@@ -282,6 +282,7 @@ const Home = () => {
   const user = useStore((state) => state.user);
   const logout = useStore((state) => state.logout);
   const getContainers = () => {
+    setLoading(true);
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
     var raw = JSON.stringify({
@@ -304,6 +305,7 @@ const Home = () => {
         });
         console.log(newData);
         setContainers(newData);
+        setLoading(false);
       })
       .catch((error) => console.log("error", error));
   };
@@ -392,13 +394,22 @@ const Home = () => {
     }
   }, [user]);
   useEffect(() => {
-    getContainers();
+    if (!modalIsOpen) {
+      getContainers();
+    }
   }, [modalIsOpen]);
   useEffect(() => {
     selectAll(select);
   }, [select]);
+  if (loading) {
+    return (
+      <div className="min-h-screen flex flex-col px-24 py-6 bg-gradient-to-r from-cyan-100 to-sky-300">
+        <Loading />
+      </div>
+    );
+  }
   return (
-    <div className="min-h-screen px-24 py-6 bg-gradient-to-r to-cyan-100 from-sky-300">
+    <div className="min-h-screen px-24 py-6 bg-gradient-to-r from-cyan-100 to-sky-300">
       <ToastContainer />
       <AddContainer isOpen={modalIsOpen} setIsOpen={setIsOpen} />
       {/* <h1>Hello</h1>
@@ -495,7 +506,7 @@ const Home = () => {
           Logout
         </button>
       </div>
-      <div className="shadow-xl rounded-xl bg-white my-6 py-6 px-8">
+      <div className="shadow-xl rounded-xl bg-gray-50 my-6 py-6 px-8">
         <div className="w-full flex justify-between items-center mt-2">
           <h1 className="text-3xl font-semibold">Containers</h1>
           <div className="flex gap-2">
@@ -520,7 +531,7 @@ const Home = () => {
             <div className="w-full col-span-1 flex items-center border-r-2 border-gray-300">
               <input
                 type="checkbox"
-                className="w-5 h-5 mx-auto"
+                className="w-5 h-5 mx-auto accent-sky-300"
                 checked={select}
                 onChange={() => setSelect(!select)}
               />
@@ -540,7 +551,7 @@ const Home = () => {
               <div className="w-full col-span-1 py-1 flex items-center border-r-2 border-gray-300">
                 <input
                   type="checkbox"
-                  className="w-5 h-5 mx-auto"
+                  className="w-5 h-5 mx-auto accent-sky-300"
                   checked={item.selected}
                   onChange={() => selectContainer(item.engineID)}
                 />
