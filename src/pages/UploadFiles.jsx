@@ -52,6 +52,7 @@ const UploadFiles = () => {
   const navigate = useNavigate();
   const [modalIsOpen, setIsOpen] = React.useState(false);
 
+  const [email, setEmail] = useState("");
   function openModal() {
     setIsOpen(true);
   }
@@ -139,6 +140,16 @@ const UploadFiles = () => {
       </div>
     );
   }
+  const giveAccess = async () => {
+    const formData = new FormData();
+    formData.append("email", email);
+    formData.append("engineId", engineId);
+    formData.append("className", container.class);
+    const response = await axios.post(
+      "http://localhost:3003/give-access",
+      formData
+    );
+  };
   return (
     <div className="min-h-screen px-24 py-6 bg-gradient-to-r from-cyan-100 to-sky-300">
       <MdArrowBack
@@ -155,10 +166,15 @@ const UploadFiles = () => {
         <div className="flex flex-col gap-4">
           <h1 className="text-lg font-medium">Give Access</h1>
           <input
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             className="border p-2 border-gray-300 border-2 rounded-lg"
             placeholder="Enter Email"
           />
-          <button className="inline-flex justify-center items-center gap-1 ml-2 rounded-md border border-transparent bg-green-100 px-4 py-2 text-sm font-medium text-green-900 hover:bg-green-200">
+          <button
+            onClick={giveAccess}
+            className="inline-flex justify-center items-center gap-1 ml-2 rounded-md border border-transparent bg-green-100 px-4 py-2 text-sm font-medium text-green-900 hover:bg-green-200"
+          >
             <AiFillLock />
             Give Access
           </button>
