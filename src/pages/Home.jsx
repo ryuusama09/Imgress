@@ -13,8 +13,8 @@ import {  LuPlay } from "react-icons/lu";
 import { BsStack } from "react-icons/bs";
 import logo from "../assets/logo.png";
 import axios from "axios";
-import "react-toastify/dist/ReactToastify.css";
 import Loading from "./Loading";
+import "react-toastify/dist/ReactToastify.css";
 
 const AddContainer = ({ isOpen, setIsOpen }) => {
   const user = useStore((state) => state.user);
@@ -24,7 +24,7 @@ const AddContainer = ({ isOpen, setIsOpen }) => {
   });
   const [property, setProperty] = useState({
     name: "",
-    dataType: "String",
+    dataType: "text",
   });
   const create = async () => {
     var myHeaders = new Headers();
@@ -65,6 +65,7 @@ const AddContainer = ({ isOpen, setIsOpen }) => {
 
         const res = await axios.post("http://localhost:3005/dev/create", {
           name: JSON.parse(result).className,
+          schema: data.properties,
         });
       })
       .catch((error) => {
@@ -78,7 +79,7 @@ const AddContainer = ({ isOpen, setIsOpen }) => {
     });
     setProperty({
       name: "",
-      dataType: "String",
+      dataType: "text",
     });
     setIsOpen(false);
   };
@@ -112,7 +113,7 @@ const AddContainer = ({ isOpen, setIsOpen }) => {
               leaveFrom="opacity-100 scale-100"
               leaveTo="opacity-0 scale-95"
             >
-              <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+              <Dialog.Panel className="w-full max-w-md transform rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
                 <Dialog.Title
                   as="h3"
                   className="text-lg font-medium leading-6 text-gray-900"
@@ -194,7 +195,7 @@ const AddContainer = ({ isOpen, setIsOpen }) => {
                           leaveTo="opacity-0"
                         >
                           <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                            {["String", "Integer"].map((person, personIdx) => (
+                            {["text", "int", "number", "boolean", "date"].map((person, personIdx) => (
                               <Listbox.Option
                                 key={personIdx}
                                 className={({ active }) =>
@@ -240,7 +241,7 @@ const AddContainer = ({ isOpen, setIsOpen }) => {
                         });
                         setProperty({
                           name: "",
-                          dataType: "String",
+                          dataType: "text",
                         });
                       }}
                     />

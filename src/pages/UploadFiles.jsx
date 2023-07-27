@@ -105,29 +105,28 @@ const UploadFiles = () => {
     for (var pair of formData.entries()) {
       console.log(pair[0] + ", " + pair[1].name);
     }
-    formData.append("imageIds", ids);
+    // formData.append("imageIds", ids);
     formData.append("engineId", engineId);
-    formData.append("className", container[0].class);
-    console.log(ids, engineId, container[0].class);
-
+    formData.append("className", container.class);
+    console.log(ids, engineId, container.class);
     const config = {
       headers: {
         "Content-Type": "multipart/form-data",
       },
     };
-    const response = await axios.post(
-      "http://localhost:3004/dev/upload",
-      formData,
-      config
-    );
-    console.log(response);
+    await axios
+      .post("http://localhost:3005/dev/upload", formData, config)
+      .then(async (res) => {
+        formData.append("imageIds", res.data.ids);
+        const response = await axios.post(
+          "http://localhost:3004/dev/upload",
+          formData,
+          config
+        );
+        console.log(response);
+      });
 
-    const response2 = await axios.post(
-      "http://localhost:3005/dev/upload",
-      formData,
-      config
-    );
-    console.log(response2);
+    
     getImages();
   };
   useEffect(() => {
@@ -141,14 +140,29 @@ const UploadFiles = () => {
     );
   }
   const giveAccess = async () => {
-    const formData = new FormData();
-    formData.append("email", email);
-    formData.append("engineId", engineId);
-    formData.append("className", container.class);
-    const response = await axios.post(
-      "http://localhost:3003/give-access",
-      formData
-    );
+    let data = JSON.stringify({
+      owner: container.userID,
+      email: email,
+      engineID: engineId,
+    });
+
+    let config = {
+      method: "post",
+      maxBodyLength: Infinity,
+      url: "http://localhost:3003/dev/giveaccess",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+    axios
+      .request(config)
+      .then((response) => {
+        console.log(JSON.stringify(response.data));
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
   return (
     <div className="min-h-screen px-24 py-6 bg-gradient-to-r from-cyan-100 to-sky-300">
@@ -206,7 +220,7 @@ const UploadFiles = () => {
           Access
         </button>
 
-        {/* <div className="bg-white p-4 shadow-lg mt-4 rounded flex justify-between">
+        <div className="bg-white p-4 shadow-lg mt-4 rounded flex justify-between">
           <h1 className="text-black text-lg">Choose a folder to upload!</h1>
           <input
             type="file"
@@ -221,7 +235,7 @@ const UploadFiles = () => {
           >
             Upload
           </button>
-        </div> */}
+        </div>
         <Tab.Group>
           <Tab.List className="flex w-fit space-x-1 rounded-xl bg-blue-900/20 p-1 mt-8">
             <Tab
