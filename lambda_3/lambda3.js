@@ -48,6 +48,9 @@ app.post("/dev/upload", upload2.any(), async (req, res) => {
 app.post("/dev/schema", async (req, res) => {
   SchemaGetter(req, res);
 });
+app.post("/dev/properties", async (req, res) => {
+  propertyGetter(req, res);
+});
 
 const createClass = async function (req, res) {
   const client = weaviate.client({
@@ -239,7 +242,23 @@ const uploadWeaviate = async (req, className, engineID) => {
   }
   return { success: true, ids };
 };
-
+const propertyGetter = async(req ,res)=>{
+  const client = weaviate.client({
+    scheme: "http",
+    host: "34.229.70.140:8080",
+  });
+  const imgId = req.body.imageID;
+  const className = req.body.className;
+  await client.data
+  .getterById()
+  .withClassName(className)
+  .withId(imgId)
+  .do().then(async(response)=>{
+    res.status(200).send(response)
+  }).catch(err=>{
+    res.status(404).send(err)
+  })
+}
 const upload = async function (req, res) {
   const className = req.body.className;
   const engineID = req.body.engineId;
