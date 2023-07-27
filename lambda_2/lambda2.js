@@ -77,7 +77,7 @@ const uploadTidb = async function (req, res) {
   const engineID = req.body.engineId;
   console.log(ids, className, engineID);
   const sql =
-    "insert into imageData(engineId , image , className) values ( ? , ? , ?)";
+    "insert into imageData(engineId , image , className, imageID) values ( ? , ? , ? , ?)";
 
   const connectionHelper = mysql.createConnection({
     host: "gateway01.eu-central-1.prod.aws.tidbcloud.com",
@@ -95,6 +95,7 @@ const uploadTidb = async function (req, res) {
     values.push(engineID);
     values.push(links[i]);
     values.push(className);
+    values.push(ids[i])
     console.log(values);
     await mysqlQuery(connectionHelper, sql, values).then((response, err) => {
       console.log(response);
@@ -114,14 +115,14 @@ const deleteS3container = async function (bucket, dir) {
     Bucket: bucket,
     Prefix: dir,
   };
-  var s3 = new AWS.S3(params);
+  var s3 = new AWS.S3(listParams);
   s3.config.update({
     accessKeyId: "AKIA47AMLKB3ZK5V5XF2",
     secretAccessKey: "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",
   });
   const listedObjects = await s3.listObjectsV2(listParams).promise();
 
-  if (listedObjects.Contents.length === 0) return;
+  if (listedObjects.Contents.length === 0) return 
 
   const deleteParams = {
     Bucket: bucket,
@@ -134,7 +135,7 @@ const deleteS3container = async function (bucket, dir) {
 
   await s3.deleteObjects(deleteParams).promise();
 
-  if (listedObjects.IsTruncated) await deleteS3container(bucket, dir);
+  if (listedObjects.IsTruncated)  await deleteS3container(bucket, dir);
 };
 
 const deleteS3Images = async function (req, res) {
@@ -162,13 +163,13 @@ const deleteS3Images = async function (req, res) {
 };
 
 const deleteTidbContainers = async function (req, res) {
-  const engineID = req.body.engineID;
-  const sql = `delete from imageData where engineId = ${engineID}`;
+  const className = req.body.className;
+  const sql = `delete from imageData where className = '${className}'`;
   //const sqlfetch = `select * from imageData where engineId = ${engineID}`;
   const connection = connectionHelper;
   connection.config.database = "imgdb";
   try {
-    mysqlQuery(connection, sql).then((responseNew) => {
+    await mysqlQuery(connection, sql).then((responseNew) => {
       res.status(200).json({ success: true, responseNew });
     });
   } catch (err) {
@@ -179,12 +180,12 @@ const deleteTidbContainers = async function (req, res) {
 const deleteTidbImages = async function (req, res) {
   const connection = connectionHelper;
   let imageId;
-  let sql = `delete from imageData where imageId = ${imageId}`;
+  let sql = `delete from imageData where imageId = '${imageId}'`;
   connection.config.database = "imgdb";
-  for (let i = 0; i < req.body.imgList.length; i++) {
-    imageId = req.body.imgList[i];
+  for (let i = 0; i < req.body.imageId.length; i++) {
+    imageId = req.body.imageId[i];
     try {
-      mysqlQuery(connection, sql).then((responseNew) => {
+      await mysqlQuery(connection, sql).then((responseNew) => {
         res.status(200).json({ success: true, responseNew });
       });
     } catch (err) {
@@ -209,3 +210,13 @@ app.post("/dev/deletetidbcont", async (req, res) => {
 app.post("/dev/upload", upload.any(), async (req, res) => {
   uploadTidb(req, res);
 });
+app.post("/dev/deletes3cont", async(req , res)=>{
+  let className = req.body.className
+  className += '/'
+  await deleteS3container('imgress-1' , className).then(
+    res.send("deleted !")
+ )
+
+  
+})
+

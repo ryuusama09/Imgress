@@ -6,6 +6,7 @@ import ServerlessHttp from "serverless-http";
 import express, { response } from "express";
 import multer from "multer";
 import schemaConfig from "./schema.js";
+import getFetchedLink from "./link.js";
 const app = express();
 app.use(cors());
 
@@ -61,14 +62,15 @@ const createClass = async function (req, res) {
   //     newSchema.properties.push(req.body.schema[i]);
   //   }
   // }
-  console.log(newSchema);
+  //console.log(newSchema);
   try {
     await client.schema
       .classCreator()
       .withClass(newSchema)
       .do()
       .then((response) => {
-        res.status(200).send(response, "works !");
+        console.log(response)
+        res.status(200).send(response);
       })
       .catch((err) => {
         console.error(err);
@@ -168,34 +170,26 @@ const fetchImage = async function (req, res) {
     scheme: "http",
     host: "34.229.70.140:8080",
   });
-  const img = req.files[0]; // i dont know how exactly
-
+  let url = req.originalUrl;
+  url = url.replace("/dev/fetch/" , "")
+  const img = req.files[0]; 
+ // console.log(img);
   const b64 = Buffer.from(img.buffer).toString("base64");
-
-  // await client.data.creator()
-  //   .withClassName('Testxz')
-  //   .withProperties({
-  //     image: b64,
-  //     text: 'test',
-  //     engineID : 13454,
-  //     imageID : 242223
-  //   })
-  //   .do();
-
-  // const test = Buffer.from(readFileSync("./imgg.jpeg")).toString("base64");
-
   const resImage = await client.graphql
     .get()
-    .withClassName("Twelthd6824a919c0649cfa3f10a9230d5370")
-    .withFields(["image"])
+    .withClassName(url)
+    .withFields(["image" , "imageID" , "engineID"])
     .withNearImage({ image: b64 })
     .withLimit(1)
     .do();
-  const result =
-    resImage.data.Get["Twelthd6824a919c0649cfa3f10a9230d5370"][0].image;
+  const result =resImage.data.Get[url][0].image;
+  const res2 = resImage.data.Get[url][0].imageID
   //writeFileSync('./result.jpeg', result, 'base64');
-
-  res.send(result);
+  console.log(res2)
+   await getFetchedLink(res2).then(response =>{
+    res.status(200).send(response[0].image)
+   })
+  
 };
 
 const uploadWeaviate = async (req, className, engineID, ids) => {
@@ -228,12 +222,15 @@ const uploadWeaviate = async (req, className, engineID, ids) => {
     console.log(e);
     return false;
   }
+
+
 };
 
 const upload = async function (req, res) {
   const className = req.body.className;
-  const engineID = req.body.engineID;
+  const engineID = req.body.engineId;
   const ids = req.body.imageIds.split(",");
+  console.log(className , engineID , ids)
   const response = await uploadWeaviate(req, className, engineID, ids);
   if (response) {
     res.status(201).json({ message: "Success" });
