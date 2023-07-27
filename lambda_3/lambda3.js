@@ -176,6 +176,7 @@ const fetchImage = async function (req, res) {
     host: "34.229.70.140:8080",
   });
   let url = req.originalUrl;
+  let limit = req.body.limit;
   url = url.replace("/dev/fetch/", "");
   const img = req.files[0];
   // console.log(img);
@@ -185,19 +186,20 @@ const fetchImage = async function (req, res) {
     .withClassName(url)
     .withFields(["image", "imageID", "engineID"])
     .withNearImage({ image: b64 })
-    .withLimit(1)
+    .withLimit(limit)
     .do();
   const result = resImage.data.Get[url][0].image;
-  const res2 = resImage.data.Get[url][0].imageID;
-  //writeFileSync('./result.jpeg', result, 'base64');
+  const res2 = resImage.data.Get[url];
   console.log(res2);
-  await getFetchedLink(res2).then((response) => {
-    console.log(response);
-    const statement = `updated image with id = ${response[0].imageID} from engine = ${response[0].className}`;
-    logger(response.engineID, statement).then((response2) => {
-      res.status(200).json({ image: response[0].image });
-    });
-  });
+  var images = [];
+  await Promise.all(
+    res2.map(async (r) => {
+      const ans = await getFetchedLink(r.imageID);
+      images.push(ans[0].image);
+    })
+  );
+  console.log(images);
+  res.status(200).json({ message: "Success", images });
 };
 
 const uploadWeaviate = async (req, className, engineID, ids) => {
