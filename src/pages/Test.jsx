@@ -80,17 +80,20 @@ const Test = () => {
           <h1 className="text-black text-lg font-bold">Resultant Images</h1>
           <div className="flex flex-wrap gap-4">
             {images?.map((image) => (
-              <div className="mt-4 relative bg-white max-w-[200px]">
+              <div className="mt-4 relative flex bg-white max-w-[540px] rounded-lg break-words shadow">
                 <img
                   src={image}
-                  width={200}
-                  height={200}
+                  width={250}
+                  height={250}
                   className="rounded-lg"
                 />
-                <div className="flex mt-4 p-2">
-                  <h1>
+                <div className="p-4">
+                  <h1 className="mt-2">
                     <span className="font-semibold">Description:</span> This is
                     a beautiful flower
+                    <h1 className="mt-2">
+                      <span className="font-semibold">Price:</span> 400$
+                    </h1>
                   </h1>
                 </div>
               </div>
