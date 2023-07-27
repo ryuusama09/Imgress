@@ -3,38 +3,13 @@ import { MdArrowBack, MdDelete } from "react-icons/md";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { v4 } from "uuid";
-const imageData = [
-  {
-    id: "2323",
-    imageUrl:
-      "https://contents.mediadecathlon.com/p2326305/b1c775bac058ef51e46a3978153bb972/p2326305.jpg",
-  },
-  {
-    id: "2324",
-    imageUrl:
-      "https://contents.mediadecathlon.com/p2326305/b1c775bac058ef51e46a3978153bb972/p2326305.jpg",
-  },
-  {
-    id: "2325",
-    imageUrl:
-      "https://contents.mediadecathlon.com/p2326305/b1c775bac058ef51e46a3978153bb972/p2326305.jpg",
-  },
-  {
-    id: "2326",
-    imageUrl:
-      "https://contents.mediadecathlon.com/p2326305/b1c775bac058ef51e46a3978153bb972/p2326305.jpg",
-  },
-  {
-    id: "2327",
-    imageUrl:
-      "https://imgress-1.s3.amazonaws.com/MyContainer98b3c86a-77f5-4157-8ec2-5c19b77c74e7/712e6077-c5f0-42a6-b9c2-50dcaeed6012",
-  },
-];
+
 const UploadFiles = () => {
   const { engineId } = useParams();
   const [container, setContainer] = useState(null);
   const [folder, setFolder] = useState([]);
   const [images, setImages] = useState([]);
+
   const navigate = useNavigate();
   useEffect(() => {
     getImages();

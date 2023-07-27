@@ -279,6 +279,8 @@ const Home = () => {
   const [containers, setContainers] = useState(null);
   const [select, setSelect] = useState(false);
   const [selectedContainers, setSelectedContainers] = useState([]);
+  const SetContainerName = useStore((state) => state.setContainerName);
+  const SetUrl = useStore((state) => state.setUrl);
   const user = useStore((state) => state.user);
   const logout = useStore((state) => state.logout);
   const getContainers = () => {
@@ -569,15 +571,21 @@ const Home = () => {
                 </CopyToClipboard>
               </div>
               <div className="col-span-2 text-2xl flex justify-evenly">
-                <Link
-                  to={"/upload-files/" + item.engineID}
+                <button
+                  // to={"/test/" + item.engineID}
                   className="rounded-full p-2 hover:bg-gray-200 group relative"
+                  onClick={() => {
+                    console.log(item.name);
+                    SetContainerName(item.name);
+                    SetUrl(item.apiURL);
+                    navigate(`/test/${item.engineID}`);
+                  }}
                 >
                   <LuPlay className="" />
                   <div class="opacity-0 bg-gray-300 text-black text-center text-xs rounded-lg py-2 absolute z-10 group-hover:opacity-100 bottom-full -left-1/4 mb-1 px-3 pointer-events-none">
                     Test
                   </div>
-                </Link>
+                </button>
                 <Link
                   to={"/upload-files/" + item.engineID}
                   className="rounded-full p-2 hover:bg-gray-200 group relative"
@@ -590,6 +598,7 @@ const Home = () => {
                 <div
                   onClick={() => {
                     setSelectedContainers([item.engineID]);
+
                     setDeleteModal(true);
                   }}
                   className="rounded-full p-2 hover:bg-gray-200 group relative"
