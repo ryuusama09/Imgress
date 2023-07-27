@@ -237,6 +237,56 @@ const giveAccess = async(req ,res)=>{
     });
   });
 }
+const copyEntry = async(UserID , engineID ,owner)=>{
+   const sqlfetch = `select * from engineData where engineID = '${engineID} and user userID = '${owner}'`
+   const connection = connectionHelper
+   await mysqlQuery(connection , sqlfetch).then((response)=>{
+    const name = response.name;
+    let className = response.class
+    const EngineApi = response.apiURL
+    console.log(className);
+    //need to connect the tidb cluster 0
+    try {
+      const sql ="INSERT INTO EngineData (engineID, userID, apiURL,name,class) VALUES (?, ?, ?,?,?)";
+      const values = [engineID, UserID, EngineApi, name, className];
+      const connection = connectionHelper;
+        mysqlQuery(connection, sql, values).then((response) => {
+        const statement = `ownership of engine = ${name} given to user = ${UserID}`;
+        logger(engineID, statement).then((response2) => {
+         return { response, response2, className, success: true }
+        });
+      });
+    } catch (err) {
+      res.status(404).json(err);
+    }
+   }
+   )
+   const DeletecopyEntry = async(UserID , engineID ,owner)=>{
+    const sqlfetch = `select * from engineData where engineID = '${engineID} and user userID = '${owner}'`
+    const connection = connectionHelper
+    await mysqlQuery(connection , sqlfetch).then((response)=>{
+     const name = response.name;
+     let className = response.class
+     const EngineApi = response.apiURL
+     console.log(className);
+     //need to connect the tidb cluster 0
+     try {
+       const sql =`Delete from EngineData where userID = '${UserID}' and engineID = '${engineID}`;
+       const values = [engineID, UserID, EngineApi, name, className];
+       const connection = connectionHelper;
+         mysqlQuery(connection, sql, values).then((response) => {
+         const statement = `revoked ownership of engine = ${name} from  user = ${UserID} by owner = ${owner}`;
+         logger(engineID, statement).then((response2) => {
+          return { response, response2, className, success: true }
+         });
+       });
+     } catch (err) {
+       res.status(404).json(err);
+     }
+    }
+    )
+
+}
 const takeAccess = async(req ,res)=>{
   const owner = req.body.owner;
   const email = req.body.email;
