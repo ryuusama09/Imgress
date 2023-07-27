@@ -16,12 +16,13 @@ const updateLogs = async (engineID, logentry) => {
   const timeStamp = require("./lamda_1/node_modules/moment")().format(
     "YYYY-MM-DD HH:mm:ss"
   );
-  const sql =
-    "insert into logging(engineID , entry , logtime ) values(? , ? , ?)";
+  const sql ="insert into logging(engineID , entry , logtime ) values(? , ? , ?)";
   const values = [engineID, logentry, timeStamp];
+  let obj;
   await mysqlQuery(connectionHelper, sql, values).then((response) => {
-    console.log(response, 'log');
-    return response;
+   obj = response
   });
+  return obj
 };
+
 module.exports = updateLogs;

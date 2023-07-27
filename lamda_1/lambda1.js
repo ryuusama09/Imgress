@@ -235,10 +235,10 @@ const giveAccess = async (req, res) => {
     values.push(response[0].UserID);
     values.push(engineID);
     await mysqlQuery(connection, sql, values).then(async (response2) => {
-      console.log(response2, '2');
+      //console.log(response2, '2');
       await copyEntry(response[0].UserID, engineID, owner).then((response3) => {
-        console.log(response3, "hi");
-        res.status(200).send(response, response2, response3);
+       // console.log(response3, "hi");
+        res.status(200).json({"1" : response, "2" : response2});
       });
     });
   });
@@ -247,21 +247,16 @@ const copyEntry = async (UserID, engineID, owner) => {
   const sqlfetch = `select * from engineData where engineID = '${engineID}' and userID = '${owner}'`;
   const connection = connectionHelper;
   await mysqlQuery(connection, sqlfetch).then(async (response) => {
-    console.log(response);
+   // console.log("1" , response);
     const name = response[0].name;
     let className = response[0].class;
     const EngineApi = response[0].apiURL;
-    // console.log(className);
-    //need to connect the tidb cluster 0
-    const sql =
-      "INSERT INTO EngineData (engineID, userID, apiURL,name,class) VALUES (?, ?, ?,?,?)";
+    const sql = "INSERT INTO EngineData (engineID, userID, apiURL,name,class) VALUES (?, ?, ?,?,?)";
     const values = [engineID, UserID, EngineApi, name, className];
     const connection = connectionHelper;
     await mysqlQuery(connection, sql, values).then(async(response2) => {
-      console.log(response2, "copy entry");
       const statement = `ownership of engine = ${name} given to user = ${UserID}`;
       await logger(engineID, statement).then((response3) => {
-        console.log(response3);
         return { "1": response, "2": response2, "3": response3, className, success: true };
       });
     });
