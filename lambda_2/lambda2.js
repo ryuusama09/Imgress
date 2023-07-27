@@ -3,6 +3,7 @@ const mysql = require("mysql");
 const serverless = require("serverless-http");
 const { v4: uuidv4Generator } = require("uuid");
 const app = express();
+const logger = require("../log");
 const fs = require("fs");
 const cors = require("cors");
 const mysqlQuery = require("../sql");
@@ -25,7 +26,6 @@ if (process.env.ENVIRONMENT === "lambda") {
     console.log("Hello");
   });
 }
-
 
 const uploadS3Img = async (req) => {
   const s3 = new AWS.S3();
@@ -96,7 +96,7 @@ const uploadTidb = async function (req, res) {
     values.push(engineID);
     values.push(links[i]);
     values.push(className);
-    values.push(ids[i])
+    values.push(ids[i]);
     console.log(values);
     await mysqlQuery(connectionHelper, sql, values).then((response, err) => {
       console.log(response);
@@ -104,8 +104,8 @@ const uploadTidb = async function (req, res) {
         console.log(err);
         res.status(500).send("error");
       }
-      const statement = `uploaded image with id = ${ids[i]} in engine = ${className}`
-      logger(engineID , statement)
+      const statement = `uploaded image with id = ${ids[i]} in engine = ${className}`;
+      logger(engineID, statement);
     });
   }
   if (res.headersSent !== true) {
@@ -125,7 +125,7 @@ const deleteS3container = async function (bucket, dir) {
   });
   const listedObjects = await s3.listObjectsV2(listParams).promise();
 
-  if (listedObjects.Contents.length === 0) return 
+  if (listedObjects.Contents.length === 0) return;
 
   const deleteParams = {
     Bucket: bucket,
@@ -138,7 +138,7 @@ const deleteS3container = async function (bucket, dir) {
 
   await s3.deleteObjects(deleteParams).promise();
 
-  if (listedObjects.IsTruncated)  await deleteS3container(bucket, dir);
+  if (listedObjects.IsTruncated) await deleteS3container(bucket, dir);
 };
 
 const deleteS3Images = async function (req, res) {
@@ -181,7 +181,7 @@ const deleteTidbContainers = async function (req, res) {
 };
 
 const deleteTidbImages = async function (req, res) {
-  const uniqueEngineID = req.body.uniqueEngineID
+  const uniqueEngineID = req.body.uniqueEngineID;
   const connection = connectionHelper;
   let imageId;
   let sql = `delete from imageData where imageId = '${imageId}'`;
@@ -190,21 +190,15 @@ const deleteTidbImages = async function (req, res) {
     imageId = req.body.imageId[i];
     try {
       await mysqlQuery(connection, sql).then((responseNew) => {
-        const statement = `Deleted Image with id = ${imageId}  from container = ${uniqueEngineID}`
-        
-        
-        
-        
-        
-        
-        
-        logger(uniqueEngineID , statement)
+        const statement = `Deleted Image with id = ${imageId}  from container = ${uniqueEngineID}`;
+
+        logger(uniqueEngineID, statement);
       });
     } catch (err) {
       res.status(404).send(err);
     }
   }
-  res.status(200).json({ success: true});
+  res.status(200).json({ success: true });
 };
 
 app.get("/dev/", (req, res) => {
@@ -223,13 +217,8 @@ app.post("/dev/deletetidbcont", async (req, res) => {
 app.post("/dev/upload", upload.any(), async (req, res) => {
   uploadTidb(req, res);
 });
-app.post("/dev/deletes3cont", async(req , res)=>{
-  let className = req.body.className
-  className += '/'
-  await deleteS3container('imgress-1' , className).then(
-    res.send("deleted !")
- )
-
-  
-})
-
+app.post("/dev/deletes3cont", async (req, res) => {
+  let className = req.body.className;
+  className += "/";
+  await deleteS3container("imgress-1", className).then(res.send("deleted !"));
+});

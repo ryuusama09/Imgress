@@ -7,7 +7,7 @@ import express, { response } from "express";
 import multer from "multer";
 import schemaConfig from "./schema.js";
 import getFetchedLink from "./link.js";
-import logger from "../log.js"
+import logger from "../log.js";
 const app = express();
 app.use(cors());
 
@@ -70,7 +70,7 @@ const createClass = async function (req, res) {
       .withClass(newSchema)
       .do()
       .then((response) => {
-        console.log(response)
+        console.log(response);
         res.status(200).send(response);
       })
       .catch((err) => {
@@ -164,11 +164,10 @@ const updateImg = async function (req, res) {
   } catch (err) {
     res.status(404).json(err);
   }
-  const statement = `updated image with id = ${imgId} from engine = ${className}`
-  await logger(engineID , statement).then(response=>{
-    res.status(200).send("ok!")
-  })
-
+  const statement = `updated image with id = ${imgId} from engine = ${className}`;
+  await logger(engineID, statement).then((response) => {
+    res.status(200).send("ok!");
+  });
 };
 
 const fetchImage = async function (req, res) {
@@ -177,28 +176,28 @@ const fetchImage = async function (req, res) {
     host: "34.229.70.140:8080",
   });
   let url = req.originalUrl;
-  url = url.replace("/dev/fetch/" , "")
-  const img = req.files[0]; 
- // console.log(img);
+  url = url.replace("/dev/fetch/", "");
+  const img = req.files[0];
+  // console.log(img);
   const b64 = Buffer.from(img.buffer).toString("base64");
   const resImage = await client.graphql
     .get()
     .withClassName(url)
-    .withFields(["image" , "imageID" , "engineID"])
+    .withFields(["image", "imageID", "engineID"])
     .withNearImage({ image: b64 })
     .withLimit(1)
     .do();
-  const result =resImage.data.Get[url][0].image;
-  const res2 = resImage.data.Get[url][0].imageID
+  const result = resImage.data.Get[url][0].image;
+  const res2 = resImage.data.Get[url][0].imageID;
   //writeFileSync('./result.jpeg', result, 'base64');
-  console.log(res2)
-   await getFetchedLink(res2).then(response =>{
-    const statement = `updated image with id = ${imgId} from engine = ${className}`
-   logger(engineID , statement).then(response2=>{
-    res.status(200).send(response[0].image)
-  })
-   })
-  
+  console.log(res2);
+  await getFetchedLink(res2).then((response) => {
+    console.log(response);
+    const statement = `updated image with id = ${response[0].imageID} from engine = ${response[0].className}`;
+    logger(response.engineID, statement).then((response2) => {
+      res.status(200).json({ image: response[0].image });
+    });
+  });
 };
 
 const uploadWeaviate = async (req, className, engineID, ids) => {
@@ -231,15 +230,13 @@ const uploadWeaviate = async (req, className, engineID, ids) => {
     console.log(e);
     return false;
   }
-
-
 };
 
 const upload = async function (req, res) {
   const className = req.body.className;
   const engineID = req.body.engineId;
   const ids = req.body.imageIds.split(",");
-  console.log(className , engineID , ids)
+  console.log(className, engineID, ids);
   const response = await uploadWeaviate(req, className, engineID, ids);
   if (response) {
     res.status(201).json({ message: "Success" });
