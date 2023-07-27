@@ -7,41 +7,18 @@ import Loading from "./Loading";
 import { LuPlay } from "react-icons/lu";
 import { TbTrash } from "react-icons/tb";
 import { RiFolderUploadLine } from "react-icons/ri";
+import { AiFillLock } from "react-icons/ai";
 import { Tab } from "@headlessui/react";
-const imageData = [
-  {
-    id: "2323",
-    imageUrl:
-      "https://contents.mediadecathlon.com/p2326305/b1c775bac058ef51e46a3978153bb972/p2326305.jpg",
-  },
-  {
-    id: "2324",
-    imageUrl:
-      "https://contents.mediadecathlon.com/p2326305/b1c775bac058ef51e46a3978153bb972/p2326305.jpg",
-  },
-  {
-    id: "2325",
-    imageUrl:
-      "https://contents.mediadecathlon.com/p2326305/b1c775bac058ef51e46a3978153bb972/p2326305.jpg",
-  },
-  {
-    id: "2326",
-    imageUrl:
-      "https://contents.mediadecathlon.com/p2326305/b1c775bac058ef51e46a3978153bb972/p2326305.jpg",
-  },
-  {
-    id: "2327",
-    imageUrl:
-      "https://imgress-1.s3.amazonaws.com/MyContainer98b3c86a-77f5-4157-8ec2-5c19b77c74e7/712e6077-c5f0-42a6-b9c2-50dcaeed6012",
-  },
-];
-
+import Modal from "react-modal";
 const Card = ({ image }) => {
   return (
-    <div key={image.id} className="block rounded-lg bg-white shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)]">
+    <div
+      key={image.id}
+      className="block rounded-lg bg-white shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)]"
+    >
       <a href="#!">
         <img
-          class="rounded-t-lg"
+          className="rounded-t-lg min-w-[300px] max-w-[400px] max-h-[400px]"
           src={image.image}
           alt=""
         />
@@ -65,14 +42,24 @@ const Card = ({ image }) => {
       </div>
     </div>
   );
-}
+};
 const UploadFiles = () => {
   const { engineId } = useParams();
   const [container, setContainer] = useState(null);
   const [folder, setFolder] = useState([]);
   const [images, setImages] = useState([]);
-  const [loading, setLoading] = useState(true)
+  const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+  const [modalIsOpen, setIsOpen] = React.useState(false);
+
+  function openModal() {
+    setIsOpen(true);
+  }
+
+  function closeModal() {
+    setIsOpen(false);
+  }
+
   const getImages = async () => {
     const data = { engineID: engineId };
     const response = await axios.post(
@@ -81,7 +68,7 @@ const UploadFiles = () => {
     );
     console.log(response.data);
     setImages(response.data);
-    setLoading(false)
+    setLoading(false);
   };
   const getContainer = () => {
     var myHeaders = new Headers();
@@ -159,6 +146,25 @@ const UploadFiles = () => {
         onClick={() => navigate(-1)}
         size={28}
       />
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={closeModal}
+        contentLabel="Example Modal"
+        className="bg-white p-6  w-[400px] shadow-lg min-h-[200px] m-auto flex flex-col justify-between mt-32"
+      >
+        <div className="flex flex-col gap-4">
+          <h1 className="text-lg font-medium">Give Access</h1>
+          <input
+            className="border p-2 border-gray-300 border-2 rounded-lg"
+            placeholder="Enter Email"
+          />
+          <button className="inline-flex justify-center items-center gap-1 ml-2 rounded-md border border-transparent bg-green-100 px-4 py-2 text-sm font-medium text-green-900 hover:bg-green-200">
+            <AiFillLock />
+            Give Access
+          </button>
+        </div>
+      </Modal>
+
       <div className="mt-6">
         <h1 className="text-gray-600 text-3xl font-medium">
           {container?.name}
@@ -176,6 +182,14 @@ const UploadFiles = () => {
           <TbTrash className="" />
           Delete
         </button>
+        <button
+          onClick={openModal}
+          className="inline-flex justify-center items-center gap-1 ml-2 rounded-md border border-transparent bg-green-100 px-4 py-2 text-sm font-medium text-green-900 hover:bg-green-200"
+        >
+          <AiFillLock />
+          Access
+        </button>
+
         {/* <div className="bg-white p-4 shadow-lg mt-4 rounded flex justify-between">
           <h1 className="text-black text-lg">Choose a folder to upload!</h1>
           <input

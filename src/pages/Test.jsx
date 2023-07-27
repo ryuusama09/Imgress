@@ -35,7 +35,7 @@ const Test = () => {
     setLoad(false);
   };
   return (
-    <div className="p-8 min-w-screen min-h-screen bg-[#E6EEFF] relative">
+    <div className="p-8 min-w-screen min-h-screen bg-gradient-to-r from-cyan-100 to-sky-300 relative">
       <MdArrowBack
         className="cursor-pointer"
         onClick={() => navigate(-1)}
