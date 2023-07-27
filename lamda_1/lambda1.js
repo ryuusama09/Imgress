@@ -341,6 +341,6 @@ app.get("/dev/welcome", async (req, res) => {
 app.post("/dev/delete-instance", async (req, res) => {
   deleteInstance(req, res);
 });
-app.get("/dev/getlogs", async (req, res) => {
+app.post("/dev/getlogs", async (req, res) => {
   getLogs(req, res);
 });

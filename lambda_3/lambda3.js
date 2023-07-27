@@ -58,6 +58,7 @@ const createClass = async function (req, res) {
 
   const newSchema = schemaConfig;
   newSchema.class = className;
+  console.log(req.body);
   if (req.body?.schema !== undefined) {
     for (let i = 0; i < req.body.schema.length; i++) {
       newSchema.properties.push(req.body.schema[i]);
@@ -152,22 +153,27 @@ const updateImg = async function (req, res) {
   const className = req.body.className;
   const imgId = req.body.imgId;
   const properties = req.body.properties;
-  try {
-    await client.data
-      .merger() // merges properties into the object
-      .withId(imgId)
-      .withClassName(className)
-      .withProperties({
-        properties,
-      })
-      .do();
-  } catch (err) {
-    res.status(404).json(err);
-  }
-  const statement = `updated image with id = ${imgId} from engine = ${className}`;
-  await logger(engineID, statement).then((response) => {
-    res.status(200).send("ok!");
-  });
+  console.log(engineID, className, imgId, properties);
+  await client.data
+    .merger() // merges properties into the object
+    .withId(imgId)
+    .withClassName(className)
+    .withProperties(properties)
+    .do()
+    .then(async (response) => {
+      const statement = `updated image with id = '${imgId}' from engine = '${className}'`;
+      await logger(engineID, statement)
+        .then((response) => {
+          res.status(200).send("ok!");
+        })
+        .catch((err) => {
+          console.log(err);
+          res.status(404).json(err);
+        });
+    }).catch((err) => {
+      console.log(err);
+      res.status(404).json(err);
+    });
 };
 
 const fetchImage = async function (req, res) {
@@ -184,7 +190,7 @@ const fetchImage = async function (req, res) {
   const resImage = await client.graphql
     .get()
     .withClassName(url)
-    .withFields(["image", "imageID", "engineID"])
+    .withFields(["image", "engineID"])
     .withNearImage({ image: b64 })
     .withLimit(limit)
     .do();
@@ -202,7 +208,7 @@ const fetchImage = async function (req, res) {
   res.status(200).json({ message: "Success", images });
 };
 
-const uploadWeaviate = async (req, className, engineID, ids) => {
+const uploadWeaviate = async (req, className, engineID) => {
   const client = weaviate.client({
     scheme: "http",
     host: "34.229.70.140:8080",
@@ -210,38 +216,37 @@ const uploadWeaviate = async (req, className, engineID, ids) => {
   console.log(req.files);
   const files = req.files;
   var b64collection = [];
+  let ids = [];
   try {
-    console.log(files.length, ids.length);
+    console.log(files.length);
     for (let i = 0; i < files.length; i++) {
       b64collection.push(Buffer.from(files[i].buffer).toString("base64"));
     }
-    for (let i = 0; i < ids.length; i++) {
+    for (let i = 0; i < files.length; i++) {
       const res = await client.data
         .creator()
         .withClassName(className)
         .withProperties({
           image: b64collection[i],
           engineID: engineID,
-          imageID: ids[i],
         })
         .do();
       console.log("helo", res);
+      ids.push(res.id);
     }
-    return true;
   } catch (e) {
     console.log(e);
-    return false;
   }
+  return { success: true, ids };
 };
 
 const upload = async function (req, res) {
   const className = req.body.className;
   const engineID = req.body.engineId;
-  const ids = req.body.imageIds.split(",");
-  console.log(className, engineID, ids);
-  const response = await uploadWeaviate(req, className, engineID, ids);
-  if (response) {
-    res.status(201).json({ message: "Success" });
+  console.log(className, engineID);
+  const response = await uploadWeaviate(req, className, engineID);
+  if (response.success) {
+    res.status(201).json({ message: "Success", ids: response.ids });
   } else {
     res.status(500).json({ message: "Failure" });
   }
