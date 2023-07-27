@@ -20,6 +20,7 @@ const Test = () => {
     console.log(url);
     const formData = new FormData();
     formData.append("files", file);
+    formData.append("limit", 2);
     var myHeaders = new Headers();
     const config = {
       headers: {
@@ -27,8 +28,8 @@ const Test = () => {
       },
     };
     const response = await axios.post(url, formData, config);
-    console.log(response.data.image);
-    setImages([response.data.image]);
+    console.log(response.data);
+    setImages(response.data.images);
   };
   return (
     <div className="p-8 min-w-screen min-h-screen bg-[#E6EEFF]">
