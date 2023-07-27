@@ -26,6 +26,7 @@ if (process.env.ENVIRONMENT === "lambda") {
   });
 }
 
+
 const uploadS3Img = async (req) => {
   const s3 = new AWS.S3();
   s3.config.update({
@@ -103,6 +104,8 @@ const uploadTidb = async function (req, res) {
         console.log(err);
         res.status(500).send("error");
       }
+      const statement = `uploaded image with id = ${ids[i]} in engine = ${className}`
+      logger(engineID , statement)
     });
   }
   if (res.headersSent !== true) {
@@ -178,6 +181,7 @@ const deleteTidbContainers = async function (req, res) {
 };
 
 const deleteTidbImages = async function (req, res) {
+  const uniqueEngineID = req.body.uniqueEngineID
   const connection = connectionHelper;
   let imageId;
   let sql = `delete from imageData where imageId = '${imageId}'`;
@@ -186,12 +190,21 @@ const deleteTidbImages = async function (req, res) {
     imageId = req.body.imageId[i];
     try {
       await mysqlQuery(connection, sql).then((responseNew) => {
-        res.status(200).json({ success: true, responseNew });
+        const statement = `Deleted Image with id = ${imageId}  from container = ${uniqueEngineID}`
+        
+        
+        
+        
+        
+        
+        
+        logger(uniqueEngineID , statement)
       });
     } catch (err) {
       res.status(404).send(err);
     }
   }
+  res.status(200).json({ success: true});
 };
 
 app.get("/dev/", (req, res) => {

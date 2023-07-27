@@ -7,6 +7,7 @@ import express, { response } from "express";
 import multer from "multer";
 import schemaConfig from "./schema.js";
 import getFetchedLink from "./link.js";
+import logger from "../log.js"
 const app = express();
 app.use(cors());
 
@@ -57,12 +58,12 @@ const createClass = async function (req, res) {
 
   const newSchema = schemaConfig;
   newSchema.class = className;
-  // if (req.body?.schema !== undefined) {
-  //   for (let i = 0; i < req.body.schema.length; i++) {
-  //     newSchema.properties.push(req.body.schema[i]);
-  //   }
-  // }
-  //console.log(newSchema);
+  if (req.body?.schema !== undefined) {
+    for (let i = 0; i < req.body.schema.length; i++) {
+      newSchema.properties.push(req.body.schema[i]);
+    }
+  }
+  console.log(newSchema);
   try {
     await client.schema
       .classCreator()
@@ -147,7 +148,7 @@ const updateImg = async function (req, res) {
     scheme: "http",
     host: "34.229.70.140:8080",
   });
-
+  const engineID = req.body.engineID;
   const className = req.body.className;
   const imgId = req.body.imgId;
   const properties = req.body.properties;
@@ -163,6 +164,11 @@ const updateImg = async function (req, res) {
   } catch (err) {
     res.status(404).json(err);
   }
+  const statement = `updated image with id = ${imgId} from engine = ${className}`
+  await logger(engineID , statement).then(response=>{
+    res.status(200).send("ok!")
+  })
+
 };
 
 const fetchImage = async function (req, res) {
@@ -187,7 +193,10 @@ const fetchImage = async function (req, res) {
   //writeFileSync('./result.jpeg', result, 'base64');
   console.log(res2)
    await getFetchedLink(res2).then(response =>{
+    const statement = `updated image with id = ${imgId} from engine = ${className}`
+   logger(engineID , statement).then(response2=>{
     res.status(200).send(response[0].image)
+  })
    })
   
 };

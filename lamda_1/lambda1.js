@@ -4,6 +4,7 @@ const serverless = require("serverless-http");
 const { v4: uuidv4Generator } = require("uuid");
 var bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
+const logger = require('../log')
 const app = express();
 const cors = require("cors");
 app.set("view engine", "ejs");
@@ -48,7 +49,11 @@ const createInstance = async function (req, res) {
     const values = [uniqueEngineID, userID, EngineApi, name, className];
     const connection = connectionHelper;
     await mysqlQuery(connection, sql, values).then((response) => {
-      res.status(200).json({ response, className, success: true });
+      const statement = `created Engine Instance = ${name}`
+       logger(uniqueEngineID , statement).then((response2)=>{
+        res.status(200).json({ response, response2 , className, success: true });
+       })
+     
     });
   } catch (err) {
     res.status(404).json(err);
@@ -58,13 +63,17 @@ const createInstance = async function (req, res) {
 const deleteInstance = async function (req, res) {
   console.log(req.body);
   let uniqueEngineID = [];
-  uniqueEngineID = req.body.engineID;
+  uniqueEngineID = req.body.engineID
+ // let names = req.body.names
   //need to connect the tidb cluster 0
   for (let i = 0; i < uniqueEngineID.length; i++) {
     try {
       const sql = `delete from EngineData where engineID = '${uniqueEngineID[i]}'`;
       const connection = connectionHelper;
-      await mysqlQuery(connection, sql).then((response) => {});
+      await mysqlQuery(connection, sql).then((response) => {
+       const statement = `Deleted Engine Instance = ${uniqueEngineID[i]}`
+       logger(uniqueEngineID[i] , statement)
+      });
     } catch (err) {
       res.status(404).json(err);
     }
@@ -125,6 +134,7 @@ function mysqlQuery(connection, sql, values) {
       });
     });
 }
+
 const loginHandler = async function (req, res) {
   console.log(req.body);
   try {
@@ -203,6 +213,15 @@ const getImgList = async function (req, res) {
   }
 };
 
+const getLogs = async(req, res)=>{
+  const engineID = req.body.engineID;
+  const connection = connectionHelper;
+  const sql = `select * from logging where engineID = '${engineID}'`
+  await mysqlQuery(connection,sql).then((response)=>{
+    res.status(200).send(response)
+  })
+}
+
 app.post("/dev/create-instance", async (req, res) => {
   createInstance(req, res);
 });
@@ -224,9 +243,12 @@ app.post("/dev/imglist", async (req, res) => {
 app.get("/dev/", (req, res) => {
   res.send("HELLO");
 });
-app.get("/dev/welcome", (req, res) => {
+app.get("/dev/welcome", async (req, res) => {
   res.json({ message: "HARSH MC" });
 });
 app.post("/dev/delete-instance", async (req, res) => {
   deleteInstance(req, res);
 });
+app.get("/dev/getlogs",async (req , res)=>{
+  getLogs(req ,res)
+})
