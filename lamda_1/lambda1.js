@@ -221,98 +221,100 @@ const getLogs = async (req, res) => {
   });
 };
 
-const giveAccess = async(req ,res)=>{
+const giveAccess = async (req, res) => {
   const owner = req.body.owner;
+  const email = req.body.email;
   const connection = connectionHelper;
-  const engineID = req.body.engineID
-  const sql = `insert into access(owner , child, engineID) values(?,?,?)'`;
-  const sqlfetch = `select UserID from userData where email = '${email}'`
-  const values = []
-  await mysqlQuery(connection, sqlfetch).then((response) => {
+  const engineID = req.body.engineID;
+  const sql = `insert into access(owner , child, engineID) values(?,?,?)`;
+  const sqlfetch = `select UserID from userData where email = '${email}'`;
+  const values = [];
+  await mysqlQuery(connection, sqlfetch).then(async (response) => {
+    // console.log(response[0].UserID);
     values.push(owner);
-    values.push(response.UserID)
-    values.push(engineID)
-    mysqlQuery(connection,sql,values).then((response2)=>{
-      res.status(200).send(response, response2);
+    values.push(response[0].UserID);
+    values.push(engineID);
+    await mysqlQuery(connection, sql, values).then(async (response2) => {
+      console.log(response2, '2');
+      await copyEntry(response[0].UserID, engineID, owner).then((response3) => {
+        console.log(response3, "hi");
+        res.status(200).send(response, response2, response3);
+      });
     });
   });
-}
-const copyEntry = async(UserID , engineID ,owner)=>{
-   const sqlfetch = `select * from engineData where engineID = '${engineID} and user userID = '${owner}'`
-   const connection = connectionHelper
-   await mysqlQuery(connection , sqlfetch).then((response)=>{
+};
+const copyEntry = async (UserID, engineID, owner) => {
+  const sqlfetch = `select * from engineData where engineID = '${engineID}' and userID = '${owner}'`;
+  const connection = connectionHelper;
+  await mysqlQuery(connection, sqlfetch).then(async (response) => {
+    console.log(response);
+    const name = response[0].name;
+    let className = response[0].class;
+    const EngineApi = response[0].apiURL;
+    // console.log(className);
+    //need to connect the tidb cluster 0
+    const sql =
+      "INSERT INTO EngineData (engineID, userID, apiURL,name,class) VALUES (?, ?, ?,?,?)";
+    const values = [engineID, UserID, EngineApi, name, className];
+    const connection = connectionHelper;
+    await mysqlQuery(connection, sql, values).then(async(response2) => {
+      console.log(response2, "copy entry");
+      const statement = `ownership of engine = ${name} given to user = ${UserID}`;
+      await logger(engineID, statement).then((response3) => {
+        console.log(response3);
+        return { "1": response, "2": response2, "3": response3, className, success: true };
+      });
+    });
+  });
+};
+const DeletecopyEntry = async (UserID, engineID, owner) => {
+  const sqlfetch = `select * from engineData where engineID = '${engineID} and user userID = '${owner}'`;
+  const connection = connectionHelper;
+  await mysqlQuery(connection, sqlfetch).then((response) => {
     const name = response.name;
-    let className = response.class
-    const EngineApi = response.apiURL
+    let className = response.class;
+    const EngineApi = response.apiURL;
     console.log(className);
     //need to connect the tidb cluster 0
     try {
-      const sql ="INSERT INTO EngineData (engineID, userID, apiURL,name,class) VALUES (?, ?, ?,?,?)";
+      const sql = `Delete from EngineData where userID = '${UserID}' and engineID = '${engineID}`;
       const values = [engineID, UserID, EngineApi, name, className];
       const connection = connectionHelper;
-        mysqlQuery(connection, sql, values).then((response) => {
-        const statement = `ownership of engine = ${name} given to user = ${UserID}`;
+      mysqlQuery(connection, sql, values).then((response) => {
+        const statement = `revoked ownership of engine = ${name} from  user = ${UserID} by owner = ${owner}`;
         logger(engineID, statement).then((response2) => {
-         return { response, response2, className, success: true }
+          return { "1": response, "2": response2, className, success: true };
         });
       });
     } catch (err) {
       res.status(404).json(err);
     }
-   }
-   )
-   const DeletecopyEntry = async(UserID , engineID ,owner)=>{
-    const sqlfetch = `select * from engineData where engineID = '${engineID} and user userID = '${owner}'`
-    const connection = connectionHelper
-    await mysqlQuery(connection , sqlfetch).then((response)=>{
-     const name = response.name;
-     let className = response.class
-     const EngineApi = response.apiURL
-     console.log(className);
-     //need to connect the tidb cluster 0
-     try {
-       const sql =`Delete from EngineData where userID = '${UserID}' and engineID = '${engineID}`;
-       const values = [engineID, UserID, EngineApi, name, className];
-       const connection = connectionHelper;
-         mysqlQuery(connection, sql, values).then((response) => {
-         const statement = `revoked ownership of engine = ${name} from  user = ${UserID} by owner = ${owner}`;
-         logger(engineID, statement).then((response2) => {
-          return { response, response2, className, success: true }
-         });
-       });
-     } catch (err) {
-       res.status(404).json(err);
-     }
-    }
-    )
-
-}
-const takeAccess = async(req ,res)=>{
+  });
+};
+const takeAccess = async (req, res) => {
   const owner = req.body.owner;
   const email = req.body.email;
-  const engineID = req.body.engineID
+  const engineID = req.body.engineID;
   const connection = connectionHelper;
-  let child
+  let child;
   const sql = `delete from access where owner = '${owner} and child = '${child}' and engineID = '${engineID}'`;
-  const sqlfetch = `select UserID from userData where email = '${email}'`
+  const sqlfetch = `select UserID from userData where email = '${email}'`;
   await mysqlQuery(connection, sqlfetch).then((response) => {
-    child = response.UserID
+    child = response.UserID;
     mysqlQuery(connection, sql).then((response2) => {
-      res.status(200).send(response ,response2);
+      res.status(200).send(response, response2);
     });
   });
-  
- 
-}
-const getAcessList = async(req ,res)=>{
+};
+const getAcessList = async (req, res) => {
   const owner = req.body.owner;
   const connection = connectionHelper;
- // const email = req.body.email
+  // const email = req.body.email
   const sql = `select * from access where owner = '${owner}'`;
   await mysqlQuery(connection, sql).then((response) => {
     res.status(200).send(response);
   });
-}
+};
 
 app.post("/dev/create-instance", async (req, res) => {
   createInstance(req, res);
@@ -331,6 +333,9 @@ app.post("/dev/signup", async (req, res) => {
 });
 app.post("/dev/imglist", async (req, res) => {
   getImgList(req, res);
+});
+app.post("/dev/giveaccess", async (req, res) => {
+  giveAccess(req, res);
 });
 app.get("/dev/", (req, res) => {
   res.send("HELLO");

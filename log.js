@@ -20,6 +20,7 @@ const updateLogs = async (engineID, logentry) => {
     "insert into logging(engineID , entry , logtime ) values(? , ? , ?)";
   const values = [engineID, logentry, timeStamp];
   await mysqlQuery(connectionHelper, sql, values).then((response) => {
+    console.log(response, 'log');
     return response;
   });
 };

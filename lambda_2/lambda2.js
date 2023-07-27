@@ -150,12 +150,12 @@ const deleteS3Images = async function (req, res) {
   const dir = req.body.className;
   var ids = req.body.imageIds;
   var filename;
-  const params = {
-    Bucket: "imgress-1",
-    Key: `${dir}/${filename}`,
-  };
   for (let i = 0; i < ids.length; i++) {
     filename = ids[i];
+    const params = {
+      Bucket: "imgress-1",
+      Key: `${dir}/${filename}`,
+    };
     s3.deleteObject(params, (error, data) => {
       if (error) {
         res.status(500).send(error);
@@ -184,14 +184,15 @@ const deleteTidbImages = async function (req, res) {
   const uniqueEngineID = req.body.uniqueEngineID;
   const connection = connectionHelper;
   let imageId;
-  let sql = `delete from imageData where imageId = '${imageId}'`;
   connection.config.database = "imgdb";
   for (let i = 0; i < req.body.imageId.length; i++) {
     imageId = req.body.imageId[i];
+    let sql = `delete from imageData where imageId = '${imageId}'`;
+    console.log(imageId, sql);
     try {
       await mysqlQuery(connection, sql).then((responseNew) => {
+        console.log(responseNew);
         const statement = `Deleted Image with id = ${imageId}  from container = ${uniqueEngineID}`;
-
         logger(uniqueEngineID, statement);
       });
     } catch (err) {
@@ -210,6 +211,9 @@ app.get("/dev/welcome", (req, res) => {
 });
 app.post("/dev/deletetidbimg", async (req, res) => {
   deleteTidbImages(req, res);
+});
+app.post("/dev/deletes3img", async (req, res) => {
+  deleteS3Images(req, res);
 });
 app.post("/dev/deletetidbcont", async (req, res) => {
   deleteTidbContainers(req, res);

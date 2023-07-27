@@ -7,6 +7,5 @@ const connection = connectionHelper;
 connection.config.database = 'imgdb'
 const sql = `select * from imageData where imageID = '${imageID}'`
      return mysqlQuery(connection , sql)
-
 }
 export default  getFetchedLink
