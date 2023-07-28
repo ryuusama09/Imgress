@@ -31,7 +31,7 @@ const Login = () => {
       redirect: "follow",
     };
 
-    fetch("http://localhost:3003/dev/login", requestOptions)
+    fetch("https://lambda1.vercel.app/dev/login", requestOptions)
       .then((response) => response.text())
       .then((result) => {
         const data = JSON.parse(result);

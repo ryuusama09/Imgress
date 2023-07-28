@@ -10,7 +10,7 @@ const Test = () => {
   const name = useStore((state) => state.containerName);
   const url = useStore((state) => state.url);
   const [file, setFile] = useState();
-  const [schema, setSchema] = useState(null)
+  const [schema, setSchema] = useState(null);
   const [images, setImages] = useState(null);
   const [limit, setLimit] = useState();
   const [load, setLoad] = useState(false);
@@ -47,7 +47,7 @@ const Test = () => {
     let config = {
       method: "post",
       maxBodyLength: Infinity,
-      url: "http://localhost:3005/dev/schema",
+      url: "https://lambda3.vercel.app/dev/schema",
       headers: {
         "Content-Type": "application/json",
       },

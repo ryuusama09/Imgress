@@ -50,7 +50,7 @@ const AddContainer = ({ isOpen, setIsOpen, getContainers, setLoading }) => {
       redirect: "follow",
     };
 
-    fetch("http://localhost:3003/dev/create-instance", requestOptions)
+    fetch("https://lambda1.vercel.app/dev/create-instance", requestOptions)
       .then((response) => response.text())
       .then(async (result) => {
         toast.success("Container created", {
@@ -65,7 +65,7 @@ const AddContainer = ({ isOpen, setIsOpen, getContainers, setLoading }) => {
         });
         console.log(result);
 
-        const res = await axios.post("http://localhost:3005/dev/create", {
+        const res = await axios.post("https://lambda3.vercel.app/dev/create", {
           name: JSON.parse(result).className,
           schema: data.properties,
         });
@@ -305,7 +305,7 @@ const Home = () => {
       body: raw,
       redirect: "follow",
     };
-    fetch("http://localhost:3003/dev/guireturn", requestOptions)
+    fetch("https://lambda1.vercel.app/dev/guireturn", requestOptions)
       .then((response) => response.text())
       .then((result) => {
         console.log(result);
@@ -326,7 +326,7 @@ const Home = () => {
   //   console.log(arr)
   //   axios
   //     .all([
-  //       axios.post("http://localhost:3003/dev/delete-instance", {
+  //       axios.post("https://lambda1.vercel.app/dev/delete-instance", {
   //         engineID: arr,
   //       }),
   //     ])
@@ -336,13 +336,13 @@ const Home = () => {
     console.log(selectedContainers);
     axios
       .all([
-        axios.post("http://localhost:3003/dev/delete-instance", {
+        axios.post("https://lambda1.vercel.app/dev/delete-instance", {
           engineID: selectedContainers,
         }),
-        axios.post("http://localhost:3004/dev/deletetidbcont", {
+        axios.post("https://lambda2.vercel.app/dev/deletetidbcont", {
           engineID: selectedContainers,
         }),
-        axios.post("http://localhost:3004/dev/deletes3cont", {
+        axios.post("https://lambda2.vercel.app/dev/deletes3cont", {
           classname: selectedContainers,
         }),
       ])

@@ -47,7 +47,7 @@ const Card = ({ image, container, setLoading, getImages }) => {
     let config = {
       method: "post",
       maxBodyLength: Infinity,
-      url: "http://localhost:3004/dev/deletetidbimg",
+      url: "https://lambda2.vercel.app/dev/deletetidbimg",
       headers: {
         "Content-Type": "application/json",
       },
@@ -66,7 +66,7 @@ const Card = ({ image, container, setLoading, getImages }) => {
         let config = {
           method: "post",
           maxBodyLength: Infinity,
-          url: "http://localhost:3004/dev/deletes3img",
+          url: "https://lambda2.vercel.app/dev/deletes3img",
           headers: {
             "Content-Type": "application/json",
           },
@@ -96,7 +96,7 @@ const Card = ({ image, container, setLoading, getImages }) => {
 
     var config = {
       method: "post",
-      url: "http://localhost:3005/dev/schema",
+      url: "https://lambda3.vercel.app/dev/schema",
       headers: {
         "Content-Type": "application/json",
       },
@@ -139,7 +139,7 @@ const Card = ({ image, container, setLoading, getImages }) => {
 
     var config = {
       method: "post",
-      url: "http://localhost:3005/dev/update",
+      url: "https://lambda3.vercel.app/dev/update",
       headers: {
         "Content-Type": "application/json",
       },
@@ -164,7 +164,7 @@ const Card = ({ image, container, setLoading, getImages }) => {
 
     var config = {
       method: "post",
-      url: "http://localhost:3005/dev/properties",
+      url: "https://lambda3.vercel.app/dev/properties",
       headers: {
         "Content-Type": "application/json",
       },
@@ -308,7 +308,7 @@ const UploadFiles = () => {
     let config = {
       method: "post",
       maxBodyLength: Infinity,
-      url: "http://localhost:3005/dev/schema",
+      url: "https://lambda3.vercel.app/dev/schema",
       headers: {
         "Content-Type": "application/json",
       },
@@ -334,7 +334,7 @@ const UploadFiles = () => {
     let config = {
       method: "post",
       maxBodyLength: Infinity,
-      url: "http://localhost:3003/dev/takeaccess",
+      url: "https://lambda1.vercel.app/dev/takeaccess",
       headers: {
         "Content-Type": "application/json",
       },
@@ -359,7 +359,7 @@ const UploadFiles = () => {
     let config = {
       method: "post",
       maxBodyLength: Infinity,
-      url: "http://localhost:3003/dev/getaccesslist",
+      url: "https://lambda1.vercel.app/dev/getaccesslist",
       headers: {
         "Content-Type": "application/json",
       },
@@ -384,7 +384,7 @@ const UploadFiles = () => {
     let config = {
       method: "post",
       maxBodyLength: Infinity,
-      url: "http://localhost:3003/dev/getlogs",
+      url: "https://lambda1.vercel.app/dev/getlogs",
       headers: {
         "Content-Type": "application/json",
       },
@@ -405,7 +405,7 @@ const UploadFiles = () => {
   const getImages = async () => {
     const data = { engineID: engineId };
     const response = await axios.post(
-      "http://localhost:3003/dev/imglist",
+      "https://lambda1.vercel.app/dev/imglist",
       data
     );
     console.log(response.data);
@@ -425,7 +425,7 @@ const UploadFiles = () => {
       body: raw,
       redirect: "follow",
     };
-    fetch("http://localhost:3003/dev/get-engine", requestOptions)
+    fetch("https://lambda1.vercel.app/dev/get-engine", requestOptions)
       .then((response) => response.text())
       .then((result) => {
         const newData = JSON.parse(result);
@@ -459,10 +459,10 @@ const UploadFiles = () => {
       },
     };
     await axios
-      .post("http://localhost:3005/dev/upload", formData, config)
+      .post("https://lambda3.vercel.app/dev/upload", formData, config)
       .then(async (res) => {
         const response = await axios.post(
-          "http://localhost:3004/dev/upload",
+          "https://lambda2.vercel.app/dev/upload",
           formData,
           config
         );
@@ -491,7 +491,7 @@ const UploadFiles = () => {
     let config = {
       method: "post",
       maxBodyLength: Infinity,
-      url: "http://localhost:3003/dev/giveaccess",
+      url: "https://lambda1.vercel.app/dev/giveaccess",
       headers: {
         "Content-Type": "application/json",
       },

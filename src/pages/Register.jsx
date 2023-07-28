@@ -30,7 +30,7 @@ const Register = () => {
       headers: myHeaders,
       body: raw,
     };
-    fetch("http://localhost:3003/dev/signup", requestOptions)
+    fetch("https://lambda1.vercel.app/dev/signup", requestOptions)
       .then((response) => response.text())
       .then((result) => {
         console.log(result);
