@@ -125,12 +125,16 @@ const Card = ({ image, container, setLoading, getImages }) => {
   };
   const updateProperties2 = async () => {
     console.log(data);
+    let newData = Object.keys(data)
+      .filter((k) => data[k] != null)
+      .reduce((a, k) => ({ ...a, [k]: data[k] }), {});
+    console.log(newData);
     console.log(image);
     var data2 = JSON.stringify({
       imgId: image.imageID,
       className: image.className,
       engineID: image.engineId,
-      properties: data,
+      properties: newData,
     });
 
     var config = {
