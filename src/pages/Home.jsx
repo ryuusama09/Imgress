@@ -16,7 +16,7 @@ import axios from "axios";
 import Loading from "./Loading";
 import "react-toastify/dist/ReactToastify.css";
 
-const AddContainer = ({ isOpen, setIsOpen }) => {
+const AddContainer = ({ isOpen, setIsOpen, getContainers, setLoading }) => {
   const user = useStore((state) => state.user);
   const [data, setData] = useState({
     name: "",
@@ -27,6 +27,8 @@ const AddContainer = ({ isOpen, setIsOpen }) => {
     dataType: "text",
   });
   const create = async () => {
+    setLoading(true)
+    setIsOpen(false)
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
     let schema = data;
@@ -67,6 +69,8 @@ const AddContainer = ({ isOpen, setIsOpen }) => {
           name: JSON.parse(result).className,
           schema: data.properties,
         });
+        console.log(res);
+        getContainers();
       })
       .catch((error) => {
         console.log("error", error);
@@ -392,15 +396,13 @@ const Home = () => {
     setContainers(newData);
   };
   useEffect(() => {
+    getContainers()
+  }, []);
+  useEffect(() => {
     if (user === null) {
       navigate("/login");
     }
   }, [user]);
-  useEffect(() => {
-    if (!modalIsOpen) {
-      getContainers();
-    }
-  }, [modalIsOpen]);
   useEffect(() => {
     selectAll(select);
   }, [select]);
@@ -414,7 +416,12 @@ const Home = () => {
   return (
     <div className="min-h-screen px-24 py-6 bg-gradient-to-r from-cyan-100 to-sky-300">
       <ToastContainer />
-      <AddContainer isOpen={modalIsOpen} setIsOpen={setIsOpen} />
+      <AddContainer
+        isOpen={modalIsOpen}
+        setIsOpen={setIsOpen}
+        getContainers={getContainers}
+        setLoading={setLoading}
+      />
       {/* <h1>Hello</h1>
       <input
         type="file"

@@ -1,57 +1,115 @@
-import React, { useEffect, useState } from "react";
-import { MdArrowBack, MdDelete } from "react-icons/md";
+import React, { Fragment, useEffect, useState } from "react";
+import { Dialog, Transition } from "@headlessui/react";
+import { MdArrowBack } from "react-icons/md";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { v4 } from "uuid";
 import Loading from "./Loading";
-import { LuPlay } from "react-icons/lu";
+import { LuPlay, LuRefreshCcw } from "react-icons/lu";
 import { TbTrash } from "react-icons/tb";
 import { RiFolderUploadLine } from "react-icons/ri";
 import { AiFillLock } from "react-icons/ai";
+import { MdRemoveCircleOutline } from "react-icons/md";
 import { Tab } from "@headlessui/react";
-import Modal from "react-modal";
-const Card = ({ image }) => {
+import { useStore } from "../store";
+const Card = ({ image, container, setLoading, getImages }) => {
+  // console.log(image, container)
+  const deleteImage = async () => {
+    setLoading(true);
+    let data = JSON.stringify({
+      uniqueEngineID: container.engineID,
+      imageId: [image.imageID],
+    });
+    // console.log(data);
+    let config = {
+      method: "post",
+      maxBodyLength: Infinity,
+      url: "http://localhost:3004/dev/deletetidbimg",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+
+    axios
+      .request(config)
+      .then((response) => {
+        console.log(JSON.stringify(response.data));
+        let data = JSON.stringify({
+          className: container.class,
+          imageIds: [image.imageID],
+        });
+
+        let config = {
+          method: "post",
+          maxBodyLength: Infinity,
+          url: "http://localhost:3004/dev/deletes3img",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          data: data,
+        };
+
+        axios
+          .request(config)
+          .then((response) => {
+            console.log(JSON.stringify(response.data));
+            getImages();
+          })
+          .catch((error) => {
+            console.log(error);
+          });
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
   return (
-    <div
-      key={image.id}
-      className="block rounded-lg bg-white shadow-[0_2px_15px_-3px_rgba(0,0,0,0.07),0_10px_20px_-2px_rgba(0,0,0,0.04)]"
-    >
-      <a href="#!">
-        <img
-          className="rounded-t-lg min-w-[300px] max-w-[400px] max-h-[400px]"
-          src={image.image}
-          alt=""
-        />
-      </a>
-      <div class="p-6">
-        <h5 class="mb-2 text-xl font-medium leading-tight text-neutral-800">
-          Card title
-        </h5>
-        <p class="mb-4 text-base text-neutral-600 ">
-          Some quick example text to build on the card title and make up the
-          bulk of the card's content.
-        </p>
+    <div key={image.id} className="block rounded-lg bg-white shadow-lg">
+      <img
+        className="rounded-t-lg w-full h-[200px] object-contain"
+        src={image.image}
+        alt=""
+      />
+      <div class="p-6 flex gap-2">
         <button
           type="button"
-          class="inline-flex justify-center items-center gap-1 rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200"
+          class="inline-flex w-full justify-center items-center gap-1 rounded-md mr-2 border border-transparent bg-sky-300 px-4 py-2 text-sm font-medium text-sky-900 hover:bg-sky-400"
           data-te-ripple-init
           data-te-ripple-color="light"
         >
-          Button
+          Properties
+        </button>
+        <button
+          type="button"
+          class="inline-flex w-full justify-center items-center gap-1 rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200"
+          data-te-ripple-init
+          data-te-ripple-color="light"
+          onClick={() => deleteImage()}
+        >
+          Delete
         </button>
       </div>
     </div>
   );
 };
 const UploadFiles = () => {
+  const user = useStore((state) => state.user);
   const { engineId } = useParams();
   const [container, setContainer] = useState(null);
+  const [access, setAccess] = useState(null);
+  const [schema, setSchema] = useState(null)
   const [folder, setFolder] = useState([]);
+  const [logs, setLogs] = useState([]);
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [modalIsOpen, setIsOpen] = React.useState(false);
-
+  useEffect(() => {
+    if (user === null) {
+      navigate("/login");
+    }
+  }, [user]);
   const [email, setEmail] = useState("");
   function openModal() {
     setIsOpen(true);
@@ -60,7 +118,108 @@ const UploadFiles = () => {
   function closeModal() {
     setIsOpen(false);
   }
+  const getSchema = async (classname) => {
+    let data = JSON.stringify({
+      className: classname,
+    });
 
+    let config = {
+      method: "post",
+      maxBodyLength: Infinity,
+      url: "http://localhost:3005/dev/schema",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+
+    axios
+      .request(config)
+      .then((response) => {
+        setSchema(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  }
+  const takeAccess = async (email) => {
+    let data = JSON.stringify({
+      owner: container?.userID,
+      engineID: engineId,
+      email: email,
+    });
+
+    let config = {
+      method: "post",
+      maxBodyLength: Infinity,
+      url: "http://localhost:3003/dev/takeaccess",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+
+    axios
+      .request(config)
+      .then((response) => {
+        console.log(JSON.stringify(response.data));
+        getAccessList(container);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+  const getAccessList = async (container) => {
+    let data = JSON.stringify({
+      owner: container?.userID,
+      engineID: engineId,
+    });
+    let config = {
+      method: "post",
+      maxBodyLength: Infinity,
+      url: "http://localhost:3003/dev/getaccesslist",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+
+    axios
+      .request(config)
+      .then((response) => {
+        console.log(response.data);
+        setAccess(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
+  const getLogs = async () => {
+    let data = JSON.stringify({
+      engineID: engineId,
+    });
+
+    let config = {
+      method: "post",
+      maxBodyLength: Infinity,
+      url: "http://localhost:3003/dev/getlogs",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+
+    axios
+      .request(config)
+      .then((response) => {
+        console.log(response.data);
+        setLogs(response.data.reverse());
+        setLoading(false);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
+  };
   const getImages = async () => {
     const data = { engineID: engineId };
     const response = await axios.post(
@@ -69,13 +228,14 @@ const UploadFiles = () => {
     );
     console.log(response.data);
     setImages(response.data);
-    setLoading(false);
+    getLogs();
   };
   const getContainer = () => {
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
     var raw = JSON.stringify({
       engineID: engineId,
+      userID: user?.UserID,
     });
     var requestOptions = {
       method: "POST",
@@ -90,6 +250,8 @@ const UploadFiles = () => {
         console.log(newData);
         setContainer(newData[0]);
         getImages();
+        getAccessList(newData[0]);
+        getSchema(newData[0].class)
       })
       .catch((error) => console.log("error", error));
   };
@@ -126,7 +288,6 @@ const UploadFiles = () => {
         console.log(response);
       });
 
-    
     getImages();
   };
   useEffect(() => {
@@ -159,66 +320,114 @@ const UploadFiles = () => {
       .request(config)
       .then((response) => {
         console.log(JSON.stringify(response.data));
+        getAccessList(container)
       })
       .catch((error) => {
         console.log(error);
       });
   };
+  // function padTo2Digits(num) {
+  //   return num.toString().padStart(2, "0");
+  // }
+
+  // function formatDate(date) {
+  //   return (
+  //     [
+  //       date.getFullYear(),
+  //       padTo2Digits(date.getMonth() + 1),
+  //       padTo2Digits(date.getDate()),
+  //     ].join("-") +
+  //     " " +
+  //     [
+  //       padTo2Digits(date.getHours()),
+  //       padTo2Digits(date.getMinutes()),
+  //       padTo2Digits(date.getSeconds()),
+  //     ].join(":")
+  //   );
+  // }
   return (
     <div className="min-h-screen px-24 py-6 bg-gradient-to-r from-cyan-100 to-sky-300">
       <MdArrowBack
         className="cursor-pointer"
-        onClick={() => navigate(-1)}
+        onClick={() => navigate("/")}
         size={28}
       />
-      <Modal
-        isOpen={modalIsOpen}
-        onRequestClose={closeModal}
-        contentLabel="Example Modal"
-        className="bg-white p-6  w-[400px] shadow-lg min-h-[200px] m-auto flex flex-col justify-between mt-32"
-      >
-        <div className="flex flex-col gap-4">
-          <h1 className="text-lg font-medium">Give Access</h1>
-          <input
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="border p-2 border-gray-300 border-2 rounded-lg"
-            placeholder="Enter Email"
-          />
-          <button
-            onClick={giveAccess}
-            className="inline-flex justify-center items-center gap-1 ml-2 rounded-md border border-transparent bg-green-100 px-4 py-2 text-sm font-medium text-green-900 hover:bg-green-200"
+      <Transition appear show={modalIsOpen} as={Fragment}>
+        <Dialog as="div" className="relative z-10" onClose={() => closeModal()}>
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
           >
-            <AiFillLock />
-            Give Access
-          </button>
-        </div>
-      </Modal>
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-lg font-medium leading-6 text-gray-900"
+                  >
+                    Access List
+                  </Dialog.Title>
+                  <div className="flex flex-col gap-4">
+                    <div className="mt-4">
+                      {access?.map((item) => (
+                        <div className="flex justify-between">
+                          <h1>{item}</h1>
+                          <button
+                            // to={"/test/" + item.engineID}
+                            className="rounded-full p-2 hover:bg-gray-200 group relative"
+                            onClick={() => takeAccess(item)}
+                          >
+                            <MdRemoveCircleOutline className="" />
+                            <div class="opacity-0 bg-gray-300 text-black text-center text-xs rounded-lg py-2 absolute z-10 group-hover:opacity-100 bottom-full -left-1/4 mb-1 px-3 pointer-events-none">
+                              Revoke
+                            </div>
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                    <input
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      className="p-2 border-gray-300 border-2 rounded-lg"
+                      placeholder="Enter Email"
+                    />
+                    <button
+                      onClick={giveAccess}
+                      className="inline-flex justify-center items-center gap-1 ml-2 rounded-md border border-transparent bg-green-100 px-4 py-2 text-sm font-medium text-green-900 hover:bg-green-200"
+                    >
+                      <AiFillLock />
+                      Give Access
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
 
       <div className="mt-6">
         <h1 className="text-gray-600 text-3xl font-medium">
           {container?.name}
         </h1>
         <h1 className="text-gray-600 font-medium mb-4">{container?.apiURL}</h1>
-        <button className="inline-flex justify-center items-center gap-1 rounded-md mr-2 border border-transparent bg-sky-300 px-4 py-2 text-sm font-medium text-sky-900 hover:bg-sky-400">
-          <LuPlay className="" />
-          Test
-        </button>
-        <button className="inline-flex justify-center items-center gap-1 rounded-md mr-2 border border-transparent bg-sky-300 px-4 py-2 text-sm font-medium text-sky-900 hover:bg-sky-400">
-          <RiFolderUploadLine className="" />
-          Upload
-        </button>
-        <button className="inline-flex justify-center items-center gap-1 rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200">
-          <TbTrash className="" />
-          Delete
-        </button>
-        <button
-          onClick={openModal}
-          className="inline-flex justify-center items-center gap-1 ml-2 rounded-md border border-transparent bg-green-100 px-4 py-2 text-sm font-medium text-green-900 hover:bg-green-200"
-        >
-          <AiFillLock />
-          Access
-        </button>
 
         <div className="bg-white p-4 shadow-lg mt-4 rounded flex justify-between">
           <h1 className="text-black text-lg">Choose a folder to upload!</h1>
@@ -237,45 +446,103 @@ const UploadFiles = () => {
           </button>
         </div>
         <Tab.Group>
-          <Tab.List className="flex w-fit space-x-1 rounded-xl bg-blue-900/20 p-1 mt-8">
-            <Tab
-              key="Images"
-              className={({ selected }) =>
-                `rounded-lg w-36 py-2.5 text-sm font-medium leading-5 text-blue-700 ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2 ${
-                  selected
-                    ? "bg-white shadow"
-                    : "text-blue-100 hover:bg-white/[0.12] hover:text-white"
-                }`
-              }
-            >
-              Images
-            </Tab>
-            <Tab
-              key="Log"
-              className={({ selected }) =>
-                `rounded-lg w-36 py-2.5 text-sm font-medium leading-5 text-blue-700 ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2 ${
-                  selected
-                    ? "bg-white shadow"
-                    : "text-blue-100 hover:bg-white/[0.12] hover:text-white"
-                }`
-              }
-            >
-              Log
-            </Tab>
-          </Tab.List>
+          <div className="flex justify-between items-center mt-6 mb-4">
+            <Tab.List className="flex w-fit space-x-1 rounded-xl bg-blue-900/20 p-1 mr-4">
+              <Tab
+                key="Images"
+                className={({ selected }) =>
+                  `rounded-lg w-36 py-2.5 text-sm font-medium leading-5 text-blue-700 ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2 ${
+                    selected
+                      ? "bg-white shadow"
+                      : "text-blue-100 hover:bg-white/[0.12] hover:text-white"
+                  }`
+                }
+              >
+                Images
+              </Tab>
+              <Tab
+                key="Log"
+                className={({ selected }) =>
+                  `rounded-lg w-36 py-2.5 text-sm font-medium leading-5 text-blue-700 ring-white ring-opacity-60 ring-offset-2 ring-offset-blue-400 focus:outline-none focus:ring-2 ${
+                    selected
+                      ? "bg-white shadow"
+                      : "text-blue-100 hover:bg-white/[0.12] hover:text-white"
+                  }`
+                }
+              >
+                Log
+              </Tab>
+            </Tab.List>
+            <div className="">
+              <button className="inline-flex h-fit justify-center items-center gap-1 rounded-md mr-4 border border-transparent bg-sky-300 px-4 py-3 text-sm font-medium text-sky-900 hover:bg-sky-400">
+                <LuPlay className="" />
+                Test
+              </button>
+              <button className="inline-flex h-fit justify-center items-center gap-1 rounded-md mr-4 border border-transparent bg-sky-300 px-4 py-3 text-sm font-medium text-sky-900 hover:bg-sky-400">
+                <RiFolderUploadLine className="" />
+                Upload
+              </button>
+              <button
+                onClick={openModal}
+                className="inline-flex h-fit justify-center items-center gap-1 mr-4 rounded-md border border-transparent bg-green-100 px-4 py-3 text-sm font-medium text-green-900 hover:bg-green-200"
+              >
+                <AiFillLock />
+                Access
+              </button>
+              <button className="inline-flex h-fit justify-center items-center gap-1 rounded-md border border-transparent bg-red-100 px-4 py-3 text-sm font-medium text-red-900 hover:bg-red-200">
+                <TbTrash className="" />
+                Delete
+              </button>
+            </div>
+          </div>
           <Tab.Panels className="mt-2">
-            <Tab.Panel key="Images" className="rounded-xl bg-white p-3">
-              <div className="mt-4">
-                <h1 className="text-black text-lg">Current Images</h1>
-                <div className="grid grid-cols-3 gap-4">
+            <Tab.Panel key="Images" className="rounded-xl bg-white py-6 px-12">
+              <div className="">
+                <h1 className="text-black text-2xl mb-4">Current Images</h1>
+                <div className="grid grid-cols-4 gap-6">
                   {images?.map((image) => (
-                    <Card image={image} />
+                    <Card
+                      image={image}
+                      container={container}
+                      setLoading={setLoading}
+                      getImages={getImages}
+                    />
                   ))}
                 </div>
+                {images?.length === 0 && (
+                  <h1 className="text-gray-500 text-xl mb-4">
+                    No Images Uploaded
+                  </h1>
+                )}
               </div>
             </Tab.Panel>
-            <Tab.Panel key="Log" className="rounded-xl bg-white p-3">
-              Log
+            <Tab.Panel key="Log" className="rounded-xl bg-white py-6 px-12">
+              <div className="flex gap-4 mb-4">
+                <h1 className="text-black text-2xl">Logs</h1>
+                <button
+                  // to={"/test/" + item.engineID}
+                  className="rounded-full p-2 hover:bg-gray-200 group relative"
+                  onClick={() => getLogs()}
+                >
+                  <LuRefreshCcw className="" />
+                  <div class="opacity-0 bg-gray-300 text-black text-center text-xs rounded-lg py-2 absolute z-10 group-hover:opacity-100 bottom-full -left-1/4 mb-1 px-3 pointer-events-none">
+                    Refresh
+                  </div>
+                </button>
+              </div>
+              <div className="bg-sky-100 px-4 py-3 rounded-xl">
+                {logs?.map((log) => (
+                  <div className="flex items-center gap-4">
+                    <h1 className="text-black font-mono">
+                      {new Date(log.logtime)
+                        .toISOString()
+                        .replace("T", " ")
+                        .substring(0, 19)}
+                    </h1>
+                    <h1 className="text-black font-mono">{log.entry}</h1>
+                  </div>
+                ))}
+              </div>
             </Tab.Panel>
           </Tab.Panels>
         </Tab.Group>

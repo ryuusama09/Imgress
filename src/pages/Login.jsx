@@ -75,7 +75,7 @@ const Login = () => {
   ];
   return (
     <div>
-      <div className="w-screen h-screen flex flex-col px-36 py-6 bg-gradient-to-r from-cyan-100 to-sky-300">
+      <div className="w-full h-screen flex flex-col px-36 py-6 bg-gradient-to-r from-cyan-100 to-sky-300">
         <div className="flex items-center text-xl">
           <img src={logo} className="w-28 self-start" />
           <h1
