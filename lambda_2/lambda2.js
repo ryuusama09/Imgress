@@ -7,7 +7,7 @@ const logger = require("./log");
 const fs = require("fs");
 const cors = require("cors");
 const mysqlQuery = require("./sql");
-const connectionHelper = require("./mysqlHelper");
+const { connectionHelper, connection } = require("./mysqlHelper");
 const bodyParser = require("body-parser");
 const multer = require("multer");
 const AWS = require("aws-sdk");
@@ -78,8 +78,6 @@ const uploadTidb = async function (req, res) {
   const sql =
     "insert into imageData(engineId , image , className, imageID) values ( ? , ? , ? , ?)";
 
-  const connection = connectionHelper;
-  connection.config.databse = process.env.IMGDB;
   for (let i = 0; i < ids.length; i++) {
     let values = [];
     values.push(engineID);
@@ -87,14 +85,14 @@ const uploadTidb = async function (req, res) {
     values.push(className);
     values.push(ids[i]);
     console.log(values);
-    await mysqlQuery(connection, sql, values).then((response, err) => {
+    await mysqlQuery(connection, sql, values).then(async (response, err) => {
       console.log(response);
       if (err !== undefined) {
         console.log(err);
         res.status(500).send("error");
       }
       const statement = `uploaded image with id = ${ids[i]} in engine = ${className}`;
-      logger(engineID, statement);
+      await logger(engineID, statement);
     });
   }
   if (res.headersSent !== true) {
@@ -165,9 +163,7 @@ const deleteTidbContainers = async function (req, res) {
 
 const deleteTidbImages = async function (req, res) {
   const uniqueEngineID = req.body.uniqueEngineID;
-  const connection = connectionHelper;
   let imageId;
-  connection.config.database = process.env.IMGDB;
   for (let i = 0; i < req.body.imageId.length; i++) {
     imageId = req.body.imageId[i];
     let sql = `delete from imageData where imageId = '${imageId}'`;

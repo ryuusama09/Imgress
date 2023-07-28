@@ -6,8 +6,8 @@ import multer from "multer";
 import schemaConfig from "./schema.js";
 import getFetchedLink from "./link.js";
 import logger from "./log.js";
-import client from "./clientConfig.js"
-import 'dotenv/config'
+import client from "./clientConfig.js";
+import "dotenv/config";
 const app = express();
 app.use(cors());
 var storage = multer.memoryStorage();
@@ -52,9 +52,8 @@ app.post("/dev/properties", async (req, res) => {
 });
 
 const createClass = async function (req, res) {
-  
   const className = req.body.name;
-
+  console.log(className);
   const newSchema = schemaConfig;
   newSchema.class = className;
   console.log(req.body);
@@ -82,7 +81,6 @@ const createClass = async function (req, res) {
 };
 
 const deleteClass = async function (req, res) {
- 
   var classList = [];
   classList = req.body.classList;
   for (let i = 0; i < classList.length; i++) {
@@ -97,7 +95,6 @@ const deleteClass = async function (req, res) {
 };
 
 const deleteImage = async function (req, res) {
- 
   var ImgList = [];
   const className = req.body.className;
   ImgList = req.body.ImgList;
@@ -116,7 +113,6 @@ const deleteImage = async function (req, res) {
 };
 
 const SchemaGetter = async function (req, res) {
-
   const classname = req.body.className;
   console.log(classname);
 
@@ -135,7 +131,6 @@ const SchemaGetter = async function (req, res) {
 };
 
 const updateImg = async function (req, res) {
- 
   const engineID = req.body.engineID;
   const className = req.body.className;
   const imgId = req.body.imgId;
@@ -157,14 +152,14 @@ const updateImg = async function (req, res) {
           console.log(err);
           res.status(404).json(err);
         });
-    }).catch((err) => {
+    })
+    .catch((err) => {
       console.log(err);
       res.status(404).json(err);
     });
 };
 
 const fetchImage = async function (req, res) {
- 
   let url = req.originalUrl;
   let limit = req.body.limit;
   url = url.replace("/dev/fetch/", "");
@@ -188,11 +183,10 @@ const fetchImage = async function (req, res) {
     })
   );
   console.log(images);
-  res.status(200).json({ message: "Success", images , res2 });
+  res.status(200).json({ message: "Success", images, res2 });
 };
 
 const uploadWeaviate = async (req, className, engineID) => {
-
   console.log(req.files);
   const files = req.files;
   var b64collection = [];
@@ -219,23 +213,25 @@ const uploadWeaviate = async (req, className, engineID) => {
   }
   return { success: true, ids };
 };
-const propertyGetter = async(req ,res)=>{
+const propertyGetter = async (req, res) => {
   const imgId = req.body.imageID;
   const className = req.body.className;
   await client.data
-  .getterById()
-  .withClassName(className)
-  .withId(imgId)
-  .do().then(async(response)=>{
-    let data = response
-    const {image , engineID, ...rest} = data.properties
-    data.properties = rest
-    res.status(200).send(data)
-  }).catch(err=>{
-    console.log(err);
-    res.status(404).send(err)
-  })
-}
+    .getterById()
+    .withClassName(className)
+    .withId(imgId)
+    .do()
+    .then(async (response) => {
+      let data = response;
+      const { image, engineID, ...rest } = data.properties;
+      data.properties = rest;
+      res.status(200).send(data);
+    })
+    .catch((err) => {
+      console.log(err);
+      res.status(404).send(err);
+    });
+};
 const upload = async function (req, res) {
   const className = req.body.className;
   const engineID = req.body.engineId;
