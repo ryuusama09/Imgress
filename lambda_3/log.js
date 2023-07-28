@@ -8,9 +8,11 @@ const updateLogs = async (engineID, logentry) => {
     "insert into logging(engineID , entry , logtime ) values(? , ? , CONVERT_TZ (?, '+00:00', '+05:30'))";
   const values = [engineID, logentry, timeStamp];
   let obj;
-  await mysqlQuery(connectionHelper, sql, values).then((response) => {
-    obj = response;
-  });
+  await mysqlQuery(connectionHelper.connectionHelper, sql, values).then(
+    (response) => {
+      obj = response;
+    }
+  );
   return obj;
 };
 

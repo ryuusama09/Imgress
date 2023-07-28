@@ -162,6 +162,8 @@ const updateImg = async function (req, res) {
 const fetchImage = async function (req, res) {
   let url = req.originalUrl;
   let limit = req.body.limit;
+  const properties = JSON.parse(req.body.schema).properties.map((p) => p.name);
+  console.log(properties);
   url = url.replace("/dev/fetch/", "");
   const img = req.files[0];
   // console.log(img);
@@ -169,44 +171,49 @@ const fetchImage = async function (req, res) {
   const resImage = await client.graphql
     .get()
     .withClassName(url)
-    .withFields(["image", "engineID"])
+    .withFields(properties)
     .withNearImage({ image: b64 })
     .withLimit(limit)
     .do();
-  //const result = resImage.data.Get[url][0].image;
+  // console.log(resImage);
+  const result = resImage.data.Get[url][0].image;
   const res2 = resImage.data.Get[url];
+  // console.log(res2);
   var images = [];
   await Promise.all(
     res2.map(async (r) => {
+      const { image, ...rest } = r;
       const ans = await getFetchedLink(r.imageID);
-      images.push(ans[0].image);
+      // console.log(ans);
+      images.push({ url: ans[0].image, properties: rest });
     })
   );
   console.log(images);
-  res.status(200).json({ message: "Success", images, res2 });
+  res.status(200).json({ message: "Success", images });
 };
 
 const uploadWeaviate = async (req, className, engineID) => {
   console.log(req.files);
   const files = req.files;
+  const ids = req.body.imageIds.split(",");
   var b64collection = [];
-  let ids = [];
   try {
     console.log(files.length);
     for (let i = 0; i < files.length; i++) {
       b64collection.push(Buffer.from(files[i].buffer).toString("base64"));
     }
-    for (let i = 0; i < files.length; i++) {
+    for (let i = 0; i < ids.length; i++) {
       const res = await client.data
         .creator()
+        .withId(ids[i])
         .withClassName(className)
         .withProperties({
           image: b64collection[i],
           engineID: engineID,
+          imageID: ids[i],
         })
         .do();
       console.log("helo", res);
-      ids.push(res.id);
     }
   } catch (e) {
     console.log(e);
@@ -223,7 +230,7 @@ const propertyGetter = async (req, res) => {
     .do()
     .then(async (response) => {
       let data = response;
-      const { image, engineID, ...rest } = data.properties;
+      const { image, engineID, imageID, ...rest } = data.properties;
       data.properties = rest;
       res.status(200).send(data);
     })

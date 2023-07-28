@@ -150,15 +150,15 @@ const deleteTidbContainers = async function (req, res) {
   const className = req.body.className;
   const sql = `delete from imageData where className = '${className}'`;
   //const sqlfetch = `select * from imageData where engineId = ${engineID}`;
-  const connection = connectionHelper;
-  connection.config.database = process.env.IMGDB;
-  try {
-    await mysqlQuery(connection, sql).then((responseNew) => {
+
+  await mysqlQuery(connection, sql)
+    .then((responseNew) => {
       res.status(200).json({ success: true, responseNew });
+    })
+    .catch((e) => {
+      console.log(e);
+      res.status(404).send(e);
     });
-  } catch (err) {
-    res.status(404).send(err);
-  }
 };
 
 const deleteTidbImages = async function (req, res) {
