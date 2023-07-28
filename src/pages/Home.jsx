@@ -599,10 +599,10 @@ const Home = () => {
                   // to={"/test/" + item.engineID}
                   className="rounded-full p-2 hover:bg-gray-200 group relative"
                   onClick={() => {
-                    console.log(item.name);
+                    console.log(item);
                     SetContainerName(item.name);
                     SetUrl(item.apiURL);
-                    navigate(`/test/${item.engineID}`);
+                    navigate(`/test/${item.class}`);
                   }}
                 >
                   <LuPlay className="" />

@@ -12,7 +12,7 @@ function App() {
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
       <Route path="/upload-files/:engineId" element={<UploadFiles />} />
-      <Route path="/test/:engineId" element={<Test />} />
+      <Route path="/test/:classname" element={<Test />} />
     </Routes>
   );
 }

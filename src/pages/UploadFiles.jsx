@@ -206,7 +206,11 @@ const Card = ({ image, container, setLoading, getImages }) => {
         <div className="bg-gradient-to-r from-cyan-100 to-sky-200 shadow p-8">
           <h1 className="text-lg font-semibold">Properties</h1>
           {properties?.map((p) => {
-            if (p.name === "image" || p.name === "engineID") {
+            if (
+              p.name === "image" ||
+              p.name === "engineID" ||
+              p.name === "imageID"
+            ) {
               return null;
             } else {
               return (
@@ -441,7 +445,7 @@ const UploadFiles = () => {
     for (var pair of formData.entries()) {
       console.log(pair[0] + ", " + pair[1].name);
     }
-    // formData.append("imageIds", ids);
+    formData.append("imageIds", ids);
     formData.append("engineId", engineId);
     formData.append("className", container.class);
     console.log(ids, engineId, container.class);
@@ -453,7 +457,6 @@ const UploadFiles = () => {
     await axios
       .post("http://localhost:3005/dev/upload", formData, config)
       .then(async (res) => {
-        formData.append("imageIds", res.data.ids);
         const response = await axios.post(
           "http://localhost:3004/dev/upload",
           formData,

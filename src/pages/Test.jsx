@@ -5,10 +5,12 @@ import { MdArrowBack, MdDelete } from "react-icons/md";
 import axios from "axios";
 import { ColorRing } from "react-loader-spinner";
 const Test = () => {
+  const { classname } = useParams();
   const navigate = useNavigate();
-  const name = useStore((state) => state?.containerName);
-  const url = useStore((state) => state?.url);
+  const name = useStore((state) => state.containerName);
+  const url = useStore((state) => state.url);
   const [file, setFile] = useState();
+  const [schema, setSchema] = useState(null)
   const [images, setImages] = useState(null);
   const [limit, setLimit] = useState();
   const [load, setLoad] = useState(false);
@@ -16,13 +18,16 @@ const Test = () => {
     console.log(name);
     console.log(url);
   }, [name, url]);
-
+  useEffect(() => {
+    getSchema();
+  }, [classname]);
   const getImages = async () => {
     setLoad(true);
     console.log(url);
     const formData = new FormData();
     formData.append("files", file);
     formData.append("limit", limit);
+    formData.append("schema", JSON.stringify(schema));
     var myHeaders = new Headers();
     const config = {
       headers: {
@@ -33,6 +38,30 @@ const Test = () => {
     console.log(response.data);
     setImages(response.data.images);
     setLoad(false);
+  };
+  const getSchema = async () => {
+    let data = JSON.stringify({
+      className: classname,
+    });
+
+    let config = {
+      method: "post",
+      maxBodyLength: Infinity,
+      url: "http://localhost:3005/dev/schema",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+
+    axios
+      .request(config)
+      .then((response) => {
+        setSchema(response.data);
+      })
+      .catch((error) => {
+        console.log(error);
+      });
   };
   return (
     <div className="p-8 min-w-screen min-h-screen bg-gradient-to-r from-cyan-100 to-sky-300 relative">
@@ -82,7 +111,7 @@ const Test = () => {
             {images?.map((image) => (
               <div className="mt-4 relative flex bg-white max-w-[540px] rounded-lg break-words shadow">
                 <img
-                  src={image}
+                  src={image.url}
                   width={250}
                   height={250}
                   className="rounded-lg"

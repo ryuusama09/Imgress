@@ -96,7 +96,7 @@ const Login = () => {
           </h1>
         </div>
         <div className="flex flex-grow justify-between">
-          <div className="mt-40 max-w-[400px]">
+          <div className="mt-40 max-w-[600px]">
             <h1 className="text-4xl font-medium">Sign up to</h1>
             <h1 className="text-5xl leading-tight font-semibold mt-4 text-transparent bg-clip-text bg-gradient-to-r to-sky-600 from-sky-400">
               Imgress
@@ -106,7 +106,7 @@ const Login = () => {
               image search engine instances
             </h1>
           </div>
-          <img src={wallpaper} className="ml-8 max-w-[250px] self-end" />
+          {/* <img src={wallpaper} className="ml-8 max-w-[250px] self-end" /> */}
           <div className="p-8 min-w-[500px] min-h-[300px] px-24 self-center">
             <form
               className="flex flex-col justify-center gap-6"
