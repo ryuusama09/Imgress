@@ -513,7 +513,10 @@ const Home = () => {
         </div>
         <button
           className="bg-sky-500 text-white p-2 rounded-md"
-          onClick={() => logout()}
+          onClick={() => {
+            localStorage.removeItem("user");
+            logout()
+          }}
         >
           Logout
         </button>

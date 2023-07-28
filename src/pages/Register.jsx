@@ -2,15 +2,17 @@ import React, { useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import { MdEmail, MdPassword, MdPerson } from "react-icons/md";
-import wallpaper from "../assets/wallpaper.png";
-import wallpaper2 from "../assets/wallpaper2.png";
+import wallpaper from "../assets/wallpaper2.png";
+import { ToastContainer, toast } from "react-toastify";
 import { SiCreatereactapp } from "react-icons/si";
 import { AiOutlineFileAdd } from "react-icons/ai";
 import { TbHierarchy } from "react-icons/tb";
 import { SiVitest, SiCoronaengine } from "react-icons/si";
+import "react-toastify/dist/ReactToastify.css";
 const Register = () => {
   const ref = useRef(null);
   const contactRef = useRef(null);
+  const [registering, setRegistering] = useState(false);
   const navigate = useNavigate();
   const [data, setData] = useState({
     email: "",
@@ -20,23 +22,55 @@ const Register = () => {
 
   const register = async (e) => {
     e.preventDefault();
-    var myHeaders = new Headers();
-    myHeaders.append("Content-Type", "application/json");
+    const regex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+    if (data.email === "" || data.username === "" || data.password === "") {
+      toast.error("Please fill all the fields");
+      return;
+    } else if (!regex.test(data.email)) {
+      toast.error("Please enter a valid email");
+      return;
+    } else if (data.password.length < 8) {
+      toast.error("Password must be atleast 8 characters long");
+      return;
+    } else if (data.username.length < 4) {
+      toast.error("Username must be atleast 4 characters long");
+      return;
+    } else if (data.username.length > 20) {
+      toast.error("Username must be less than 20 characters long");
+      return;
+    } else if (data.password.length > 20) {
+      toast.error("Password must be less than 20 characters long");
+      return;
+    } else if (data.username.includes(" ")) {
+      toast.error("Username must not contain spaces");
+      return;
+    } else if (data.password.includes(" ")) {
+      toast.error("Password must not contain spaces");
+      return;
+    } else {
+      setRegistering(true);
+      var myHeaders = new Headers();
+      myHeaders.append("Content-Type", "application/json");
 
-    var raw = JSON.stringify(data);
-
-    var requestOptions = {
-      method: "POST",
-      headers: myHeaders,
-      body: raw,
-    };
-    fetch("https://lambda1.vercel.app/dev/signup", requestOptions)
-      .then((response) => response.text())
-      .then((result) => {
-        console.log(result);
-        navigate("/login");
-      })
-      .catch((error) => console.log("error", error));
+      var raw = JSON.stringify(data);
+      var requestOptions = {
+        method: "POST",
+        headers: myHeaders,
+        body: raw,
+      };
+      fetch("https://lambda1.vercel.app/dev/signup", requestOptions)
+        .then((response) => response.text())
+        .then((result) => {
+          console.log(result);
+          setRegistering(false);
+          navigate("/login");
+        })
+        .catch((error) => {
+          console.log("error", error);
+          toast.error("Username or email already exists");
+          setRegistering(false);
+        });
+    }
   };
   const descData = [
     {
@@ -73,8 +107,9 @@ const Register = () => {
 
   return (
     <div>
-      <div className="w-screen h-screen flex justify-between px-24 py-6  bg-gradient-to-r from-cyan-100 to-teal-400">
-        <div>
+      <ToastContainer />
+      <div className="w-full h-screen flex">
+        <div className="flex flex-col px-36 py-6 flex-grow max-w-[60vw]">
           <div className="flex items-center text-xl">
             <img src={logo} className="w-28 self-start" />
             <h1
@@ -94,9 +129,9 @@ const Register = () => {
               Contact
             </h1>
           </div>
-          <div className="mt-32 ml-24 max-w-[400px]">
-            <h1 className="text-4xl font-medium">Sign up to</h1>
-            <h1 className="text-5xl leading-tight font-semibold mt-4 text-transparent bg-clip-text bg-gradient-to-r from-cyan-500 to-blue-500">
+          <div className="mt-40 max-w-[600px]">
+            <h1 className="text-4xl font-medium">Sign in to</h1>
+            <h1 className="text-5xl leading-tight font-semibold mt-4 text-transparent bg-clip-text bg-gradient-to-r to-sky-600 from-sky-400">
               Imgress
             </h1>
             <h1 className="mt-4 text-2xl font-normal ">
@@ -104,109 +139,108 @@ const Register = () => {
               image search engine instances
             </h1>
           </div>
+          <img src={wallpaper} className="max-w-[250px] self-end" />
         </div>
-        <img src={wallpaper2} className="ml-8 mb-12 max-w-[250px] self-end" />
-        <div className="p-8 min-w-[500px] min-h-[300px] px-24">
-          <form
-            className="flex flex-col justify-center gap-6"
-            onSubmit={(e) => register(e)}
-          >
-            <h1 className="text-gray-800 text-3xl font-semibold">Sign Up!</h1>
-            <p className="text-gray-600 text-md font-medium">
-              Start your journey of creating engines!
-            </p>
-            <div className="border bg-white shadow border-gray-300 p-2 flex items-center rounded-md">
-              <MdEmail className="text-blue-500 mr-2" size={18} />
-              <input
-                type="text"
-                placeholder="Enter your email"
-                className="p-1 w-full text-sm outline-none"
-                value={data.email}
-                onChange={(e) => setData({ ...data, email: e.target.value })}
-              />
-            </div>
-            <div className="border bg-white shadow border-gray-300 p-2 flex items-center rounded-md">
-              <MdPerson className="text-blue-500 mr-2" size={18} />
-              <input
-                type="text"
-                placeholder="Enter your username"
-                className="p-1 text-sm w-full outline-none"
-                value={data.username}
-                onChange={(e) => setData({ ...data, username: e.target.value })}
-              />
-            </div>
-            <div className="border bg-white shadow border-gray-300 p-2 flex items-center rounded-md">
-              <MdPassword className="text-blue-500 mr-2" size={18} />
-              <input
-                type="password"
-                placeholder="Enter your password"
-                className="p-1 text-sm w-full outline-none"
-                value={data.password}
-                onChange={(e) => setData({ ...data, password: e.target.value })}
-              />
-            </div>
-            <div className="border bg-white shadow border-gray-300 p-2 flex items-center rounded-md">
-              <MdPassword className="text-blue-500 mr-2" size={18} />
-              <input
-                type="password"
-                placeholder="Confirm your password"
-                className="p-1 text-sm w-full outline-none"
-                // value={data.password}
-                // onChange={(e) => setData({ ...data, password: e.target.value })}
-              />
-            </div>
-            <button
-              type="submit"
-              className="bg-gradient-to-r from-cyan-500 to-blue-500 text-white p-2 rounded-md text-sm"
+        <div className="flex justify-between flex-grow bg-[#02203c] text-sky-300">
+          <div className="p-8 w-full min-h-[300px] px-24 self-center">
+            <form
+              className="flex flex-col justify-center gap-6"
+              onSubmit={(e) => register(e)}
             >
-              Register
-            </button>
-            <Link to="/login" className="text-blue-600 mt-4 font-medium">
-              Already have an account? Sign in
-            </Link>
-          </form>
+              <h1 className="text-3xl font-semibold">Sign in!</h1>
+              <p className="text-md font-medium">
+                Start your journey of creating engines!
+              </p>
+              <div className="bg-sky-900 shadow p-2 flex items-center rounded-md">
+                <MdEmail className="text-sky-500 mr-2" size={18} />
+                <input
+                  type="text"
+                  placeholder="Enter email"
+                  className="p-1 w-full text-sm outline-none bg-inherit"
+                  value={data.email}
+                  onChange={(e) => setData({ ...data, email: e.target.value })}
+                />
+              </div>
+              <div className="bg-sky-900 shadow p-2 flex items-center rounded-md">
+                <MdPerson className="text-sky-500 mr-2" size={18} />
+                <input
+                  type="text"
+                  placeholder="Enter username"
+                  className="p-1 w-full text-sm outline-none bg-inherit"
+                  value={data.username}
+                  onChange={(e) =>
+                    setData({ ...data, username: e.target.value })
+                  }
+                />
+              </div>
+              <div className="bg-sky-900 shadow p-2 flex items-center rounded-md">
+                <MdPassword className="text-sky-500 mr-2" size={18} />
+                <input
+                  type="password"
+                  placeholder="Enter password"
+                  className="p-1 text-sm w-full outline-none bg-inherit"
+                  value={data.password}
+                  onChange={(e) =>
+                    setData({ ...data, password: e.target.value })
+                  }
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={registering}
+                className="bg-gradient-to-bl from-sky-600 to-sky-300 bg-[position:_0%_0%] hover:bg-[position:_100%_100%] bg-[size:_200%] transition-all duration-500 text-[#02203c] p-3 rounded-md"
+              >
+                {registering ? "Registering..." : "Register"}
+              </button>
+              <Link to="/login" className="text-sky-600 mt-4 font-medium">
+                Already have an account? Login
+              </Link>
+            </form>
+          </div>
         </div>
       </div>
-      <div>
-        <h1
-          ref={ref}
-          id="about"
-          className="text-center leading-tight mt-8 text-4xl font-semibold text-transparent bg-clip-text bg-gradient-to-r to-sky-800 from-sky-900"
-        >
-          What is Imgress?
-        </h1>
-        <div className="mt-8  flex w-full justify-center bg-white flex-wrap items-center gap-6 pb-4">
-          {descData.map((desc) => (
-            <div
-              key={desc.id}
-              className="cursor-pointer max-w-[350px] min-h-[300px] p-4 pt-6 bg-white shadow-xl hover:shadow-2xl rounded flex flex-col items-center justify-center"
-            >
-              <desc.Icon />
-              <h1 className="text-2xl font-medium mt-4">{desc.name}</h1>
-              <h1 className="mt-2 text-lg text-center">{desc.desc}</h1>
-            </div>
-          ))}
+      <div
+        ref={ref}
+        className="px-36 py-6 bg-gradient-to-r from-cyan-100 to-sky-300 h-screen"
+      >
+        <div>
+          <h1 className="text-center leading-tight mt-6 text-4xl font-semibold text-transparent bg-clip-text bg-gradient-to-r to-sky-800 from-sky-900">
+            What is Imgress?
+          </h1>
+          <div className="grid grid-cols-3 gap-6 mt-12">
+            {descData.map((desc) => (
+              <div
+                key={desc.id}
+                className="cursor-pointer w-full px-8 py-6 bg-white shadow-xl hover:shadow-2xl rounded flex flex-col items-center justify-center"
+              >
+                <desc.Icon />
+                <h1 className="text-2xl font-medium mt-4">{desc.name}</h1>
+                <h1 className="mt-2 text-lg text-center">{desc.desc}</h1>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
       <div
         ref={contactRef}
-        className="mt-8 flex flex-col items-center px-36 py-6 bg-gradient-to-r from-cyan-100 to-sky-300"
+        className="flex flex-col items-center px-36 py-12 bg-gradient-to-r from-[#02203c] to-[#001528] text-sky-300"
       >
         <div className="w-[400px] flex flex-col gap-4">
-          <h1 className="text-center leading-tight mt-8 text-4xl font-semibold text-transparent bg-clip-text bg-gradient-to-r to-sky-800 from-sky-900">
+          <h1 className="text-center leading-tight text-4xl font-semibold bg-clip-text">
             Contact Us
           </h1>
           <input
             type="email"
-            className="p-2 border border-2 border-gray-200 rounded-lg"
+            className="p-2 rounded-lg bg-sky-900 outline-none"
             placeholder="Enter you Email"
           />
           <textarea
             rows={7}
-            className="p-2 border border-2 border-gray-200 rounded-lg"
+            className="p-2 rounded-lg bg-sky-900 outline-none"
             placeholder="Enter your message or query.."
           />
-          <button className="self-center w-[100px] bg-gradient-to-bl from-sky-600 to-sky-300 bg-[position:_0%_0%] hover:bg-[position:_100%_100%] bg-[size:_200%] transition-all duration-500 text-white p-3 rounded-md">
+          <button className="bg-gradient-to-bl from-sky-600 to-sky-300 bg-[position:_0%_0%] hover:bg-[position:_100%_100%] bg-[size:_200%] transition-all duration-500 text-[#02203c] p-3 rounded-md">
             Submit
           </button>
         </div>
