@@ -9,7 +9,7 @@ import { IoAddCircleOutline, IoTrashBin } from "react-icons/io5";
 import { HiChevronUpDown, HiCheck } from "react-icons/hi2";
 import { RiFolderUploadLine } from "react-icons/ri";
 import { TbTrash } from "react-icons/tb";
-import {  LuPlay } from "react-icons/lu";
+import { LuPlay } from "react-icons/lu";
 import { BsStack } from "react-icons/bs";
 import logo from "../assets/logo.png";
 import axios from "axios";
@@ -27,8 +27,8 @@ const AddContainer = ({ isOpen, setIsOpen, getContainers, setLoading }) => {
     dataType: "text",
   });
   const create = async () => {
-    setLoading(true)
-    setIsOpen(false)
+    setLoading(true);
+    setIsOpen(false);
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
     let schema = data;
@@ -199,39 +199,43 @@ const AddContainer = ({ isOpen, setIsOpen, getContainers, setLoading }) => {
                           leaveTo="opacity-0"
                         >
                           <Listbox.Options className="absolute mt-1 max-h-60 w-full overflow-auto rounded-md bg-white py-1 text-base shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none sm:text-sm">
-                            {["text", "int", "number", "boolean", "date"].map((person, personIdx) => (
-                              <Listbox.Option
-                                key={personIdx}
-                                className={({ active }) =>
-                                  `relative cursor-default select-none py-2 pl-10 pr-4 ${
-                                    active
-                                      ? "bg-amber-100 text-amber-900"
-                                      : "text-gray-900"
-                                  }`
-                                }
-                                value={person}
-                              >
-                                {({ selected }) => (
-                                  <>
-                                    <span
-                                      className={`block truncate ${
-                                        selected ? "font-medium" : "font-normal"
-                                      }`}
-                                    >
-                                      {person}
-                                    </span>
-                                    {selected ? (
-                                      <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-amber-600">
-                                        <HiCheck
-                                          className="h-5 w-5"
-                                          aria-hidden="true"
-                                        />
+                            {["text", "int", "number", "boolean", "date"].map(
+                              (person, personIdx) => (
+                                <Listbox.Option
+                                  key={personIdx}
+                                  className={({ active }) =>
+                                    `relative cursor-default select-none py-2 pl-10 pr-4 ${
+                                      active
+                                        ? "bg-amber-100 text-amber-900"
+                                        : "text-gray-900"
+                                    }`
+                                  }
+                                  value={person}
+                                >
+                                  {({ selected }) => (
+                                    <>
+                                      <span
+                                        className={`block truncate ${
+                                          selected
+                                            ? "font-medium"
+                                            : "font-normal"
+                                        }`}
+                                      >
+                                        {person}
                                       </span>
-                                    ) : null}
-                                  </>
-                                )}
-                              </Listbox.Option>
-                            ))}
+                                      {selected ? (
+                                        <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-amber-600">
+                                          <HiCheck
+                                            className="h-5 w-5"
+                                            aria-hidden="true"
+                                          />
+                                        </span>
+                                      ) : null}
+                                    </>
+                                  )}
+                                </Listbox.Option>
+                              )
+                            )}
                           </Listbox.Options>
                         </Transition>
                       </div>
@@ -304,6 +308,7 @@ const Home = () => {
     fetch("http://localhost:3003/dev/guireturn", requestOptions)
       .then((response) => response.text())
       .then((result) => {
+        console.log(result);
         const newData = JSON.parse(result).map((item) => {
           return {
             ...item,
@@ -396,7 +401,7 @@ const Home = () => {
     setContainers(newData);
   };
   useEffect(() => {
-    getContainers()
+    getContainers();
   }, []);
   useEffect(() => {
     if (user === null) {

@@ -12,8 +12,31 @@ import { AiFillLock } from "react-icons/ai";
 import { MdRemoveCircleOutline } from "react-icons/md";
 import { Tab } from "@headlessui/react";
 import { useStore } from "../store";
+import Modal from "react-modal";
 const Card = ({ image, container, setLoading, getImages }) => {
   // console.log(image, container)
+  const [properties, setProperties] = useState([]);
+  const [modalIsOpen, setIsOpen] = React.useState(false);
+  const [modalIsOpen2, setIsOpen2] = React.useState(false);
+  const [getProper, setGetProper] = useState({});
+  const [data, setData] = useState({});
+
+  function openModal() {
+    setIsOpen(true);
+  }
+
+  function closeModal() {
+    setIsOpen(false);
+  }
+
+  function openModal2() {
+    setIsOpen2(true);
+  }
+
+  function closeModal2() {
+    setIsOpen2(false);
+  }
+
   const deleteImage = async () => {
     setLoading(true);
     let data = JSON.stringify({
@@ -64,19 +87,170 @@ const Card = ({ image, container, setLoading, getImages }) => {
         console.log(error);
       });
   };
+  const updateProperties = async () => {
+    openModal();
+    var data = JSON.stringify({
+      imageID: image.imageID,
+      className: container.class,
+    });
+
+    var config = {
+      method: "post",
+      url: "http://localhost:3005/dev/schema",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+
+    axios(config)
+      .then(function (response) {
+        console.log(JSON.stringify(response));
+        response.data.properties.map((p) => {
+          console.log(p.name);
+        });
+
+        console.log(response.data.properties);
+        setProperties(response.data.properties);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  };
+
+  const handleInput = (inputEv, name) => {
+    const value = inputEv.target.value;
+    data[name] = value;
+    setData(data);
+  };
+  const updateProperties2 = async () => {
+    console.log(data);
+    console.log(image);
+    var data2 = JSON.stringify({
+      imgId: image.imageID,
+      className: image.className,
+      engineID: image.engineId,
+      properties: data,
+    });
+
+    var config = {
+      method: "post",
+      url: "http://localhost:3005/dev/update",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: data2,
+    };
+
+    axios(config)
+      .then(function (response) {
+        console.log(JSON.stringify(response.data));
+        closeModal();
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  };
+  const getProp = async () => {
+    openModal2();
+    var data = JSON.stringify({
+      imageID: image.imageID,
+      className: container.class,
+    });
+
+    var config = {
+      method: "post",
+      url: "http://localhost:3005/dev/properties",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      data: data,
+    };
+
+    axios(config)
+      .then(function (response) {
+        console.log(response.data.properties);
+        setGetProper(response.data.properties);
+      })
+      .catch(function (error) {
+        console.log(error);
+      });
+  };
   return (
     <div key={image.id} className="block rounded-lg bg-white shadow-lg">
+      <Modal
+        isOpen={modalIsOpen2}
+        onRequestClose={closeModal2}
+        contentLabel="Example Modal"
+        className="max-w-[400px] m-auto mt-32"
+      >
+        <div className="bg-gradient-to-r from-cyan-100 to-sky-200 shadow p-8">
+          <h1 className="text-lg font-semibold">Properties</h1>
+          {Object.keys(getProper).length !== 0 ? (
+            Object.keys(getProper).map((k, i) => (
+              <h1 className="mt-2">
+                <span className="font-semibold">{k}</span> : {getProper[k]}
+              </h1>
+            ))
+          ) : (
+            <h1>No Properties</h1>
+          )}
+        </div>
+      </Modal>
+      <Modal
+        isOpen={modalIsOpen}
+        onRequestClose={closeModal}
+        contentLabel="Example Modal"
+        className="max-w-[400px] m-auto mt-32"
+      >
+        <div className="bg-gradient-to-r from-cyan-100 to-sky-200 shadow p-8">
+          <h1 className="text-lg font-semibold">Properties</h1>
+          {properties?.map((p) => {
+            if (p.name === "image" || p.name === "engineID") {
+              return null;
+            } else {
+              return (
+                <div className="flex justify-between w-full mt-2">
+                  <h1>{p.name}</h1>
+                  <input
+                    className="ml-2 border border-gray-200 border-2"
+                    type="text"
+                    onChange={(e) => handleInput(e, p.name)}
+                  />
+                </div>
+              );
+            }
+          })}
+          <button
+            onClick={() => updateProperties2()}
+            className="self-center mt-2 inline-flex h-fit justify-center items-center gap-1 rounded-md mr-4 border border-transparent bg-sky-300 px-4 py-3 text-sm font-medium text-sky-900 hover:bg-sky-400"
+          >
+            <RiFolderUploadLine className="" />
+            Update
+          </button>
+        </div>
+      </Modal>
       <img
         className="rounded-t-lg w-full h-[200px] object-contain"
         src={image.image}
         alt=""
       />
-      <div class="p-6 flex gap-2">
+      <div class="p-6 flex gap-2 flex-wrap">
         <button
           type="button"
           class="inline-flex w-full justify-center items-center gap-1 rounded-md mr-2 border border-transparent bg-sky-300 px-4 py-2 text-sm font-medium text-sky-900 hover:bg-sky-400"
           data-te-ripple-init
           data-te-ripple-color="light"
+          onClick={() => updateProperties()}
+        >
+          Update
+        </button>
+        <button
+          type="button"
+          class="inline-flex w-full justify-center items-center gap-1 rounded-md mr-2 border border-transparent bg-sky-300 px-4 py-2 text-sm font-medium text-sky-900 hover:bg-sky-400"
+          data-te-ripple-init
+          data-te-ripple-color="light"
+          onClick={() => getProp()}
         >
           Properties
         </button>
@@ -98,7 +272,7 @@ const UploadFiles = () => {
   const { engineId } = useParams();
   const [container, setContainer] = useState(null);
   const [access, setAccess] = useState(null);
-  const [schema, setSchema] = useState(null)
+  const [schema, setSchema] = useState(null);
   const [folder, setFolder] = useState([]);
   const [logs, setLogs] = useState([]);
   const [images, setImages] = useState([]);
@@ -141,7 +315,7 @@ const UploadFiles = () => {
       .catch((error) => {
         console.log(error);
       });
-  }
+  };
   const takeAccess = async (email) => {
     let data = JSON.stringify({
       owner: container?.userID,
@@ -251,7 +425,7 @@ const UploadFiles = () => {
         setContainer(newData[0]);
         getImages();
         getAccessList(newData[0]);
-        getSchema(newData[0].class)
+        getSchema(newData[0].class);
       })
       .catch((error) => console.log("error", error));
   };
@@ -320,7 +494,7 @@ const UploadFiles = () => {
       .request(config)
       .then((response) => {
         console.log(JSON.stringify(response.data));
-        getAccessList(container)
+        getAccessList(container);
       })
       .catch((error) => {
         console.log(error);
