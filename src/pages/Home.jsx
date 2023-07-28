@@ -475,10 +475,7 @@ const Home = () => {
                   </Dialog.Title>
                   <div className="mt-2">
                     <p className="text-sm text-gray-500">
-                      Lorem ipsum dolor sit amet, consectetur adipisicing elit.
-                      Ducimus veritatis neque aspernatur tempore molestias
-                      dolorum vero dicta velit est id nam, obcaecati blanditiis
-                      dolorem quia voluptatibus, ipsum labore, adipisci illum.
+                      Are you sure you want to delete this container?
                     </p>
                   </div>
 
