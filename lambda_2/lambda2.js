@@ -11,7 +11,7 @@ const connectionHelper = require("./mysqlHelper");
 const bodyParser = require("body-parser");
 const multer = require("multer");
 const AWS = require("aws-sdk");
-const config = require('./s3conf')
+const config = require("./s3conf");
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -23,7 +23,7 @@ const PORT = 3004;
 if (process.env.ENVIRONMENT === "lambda") {
   module.exports.handler = serverless(app);
 } else {
-  app.listen(PORT | parseInt(process.env.PORT_L_3), () => {
+  app.listen(PORT | parseInt(process.env.PORT_L_2), () => {
     console.log("Hello");
   });
 }
@@ -78,8 +78,8 @@ const uploadTidb = async function (req, res) {
   const sql =
     "insert into imageData(engineId , image , className, imageID) values ( ? , ? , ? , ?)";
 
-  const connection = connectionHelper
-  connection.config.databse = process.env.IMGDB
+  const connection = connectionHelper;
+  connection.config.databse = process.env.IMGDB;
   for (let i = 0; i < ids.length; i++) {
     let values = [];
     values.push(engineID);
