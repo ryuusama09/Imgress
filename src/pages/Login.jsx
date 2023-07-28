@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useStore } from "../store";
 import { MdEmail, MdPassword } from "react-icons/md";
 import logo from "../assets/logo.png";
-import wallpaper from "../assets/wallpaper.png";
+import wallpaper from "../assets/wallpaper2.png";
 import { SiCreatereactapp } from "react-icons/si";
 import { AiOutlineFileAdd } from "react-icons/ai";
 import { TbHierarchy } from "react-icons/tb";
@@ -106,7 +106,7 @@ const Login = () => {
               image search engine instances
             </h1>
           </div>
-          {/* <img src={wallpaper} className="ml-8 max-w-[250px] self-end" /> */}
+          <img src={wallpaper} className="ml-8 mb-12 max-w-[250px] self-end" />
           <div className="p-8 min-w-[500px] min-h-[300px] px-24 self-center">
             <form
               className="flex flex-col justify-center gap-6"
