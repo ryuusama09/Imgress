@@ -52,13 +52,18 @@ const createInstance = async function (req, res) {
   try {
     const sql =
       "INSERT INTO EngineData (engineID, userID, apiURL,name,class) VALUES (?, ?, ?,?,?)";
+    const sqlowner = "insert into access(owner , child, engineID) values(?,?,?)"
     const values = [uniqueEngineID, userID, EngineApi, name, className];
+    const values2 = [userID , ' ' , uniqueEngineID]
     const connection = connectionHelper;
-    await mysqlQuery(connection, sql, values).then((response) => {
-      const statement = `created Engine Instance = ${name}`;
-      logger(uniqueEngineID, statement).then((response2) => {
-        res.status(200).json({ response, response2, className, success: true });
-      });
+    await mysqlQuery(connection, sql, values).then(async(response) => {
+       await mysqlQuery(connection , sqlowner).then(async response2=>{
+        const statement = `created Engine Instance = ${name}`;
+       await logger(uniqueEngineID, statement).then((response3) => {
+          res.status(200).json({ response, response2,response3,className, success: true });
+        });
+       })
+      
     });
   } catch (err) {
     res.status(404).json(err);
@@ -91,20 +96,11 @@ const DeliverData = async function (req, res) {
   try {
     const sql = `SELECT * FROM EngineData WHERE userID = '${req.body.userID}'`;
     const connection = connectionHelper;
-    let owner = []
-    let responseBody
     await mysqlQuery(connection, sql).then(async(response) => {
-      responseBody = response 
-      for(let i = 0; i < response.length; i++){
-        const sql2 = `select owner from access where engineID = '${response[i].engineID}'`
-        await mysqlQuery(connection , sql2).then(async(response2)=>{
-           owner.push(response2.owner)
-        }) 
-      }
-      
-    });
-    res.status(200).send(responseBody , owner)
-  } catch (err) {
+      res.status(200).send(response)
+    });   
+  } 
+  catch (err) {
     res.status(404).json(err);
   }
 
@@ -113,15 +109,22 @@ const DeliverData = async function (req, res) {
 
 const DeliverEngine = async function (req, res) {
   console.log(req.body);
-  try {
+  
     const sql = `SELECT * FROM EngineData WHERE engineID = '${req.body.engineID}'`;
+    const sqlowner = `select owner from access where engineID = '${req.body.engineID}' and child = ''`
     const connection = connectionHelper;
-    await mysqlQuery(connection, sql).then((response) => {
-      res.status(200).send(response);
-    });
-  } catch (err) {
-    res.status(404).json(err);
-  }
+    let responseBody
+    await mysqlQuery(connection, sql).then(async(response) => {
+      responseBody = response
+      await mysqlQuery(connection , sqlowner).then(async(response2)=>{
+            responseBody.owner = response2.owner
+            res.status(200).send(responseBody)
+      })
+     
+    })
+   .catch ((err)=> {
+    res.status(404).json(err)})
+
 
   // connection.end();
 };
