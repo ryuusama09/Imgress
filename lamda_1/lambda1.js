@@ -1,19 +1,21 @@
 const express = require("express");
-const mysql = require("mysql");
 const serverless = require("serverless-http");
 const { v4: uuidv4Generator } = require("uuid");
 var bodyParser = require("body-parser");
 const bcrypt = require("bcrypt");
-const logger = require("../log");
+const logger = require("./log");
+require('dotenv').config()
+const connectionHelper = require("./mysqlHelper");
+const mysqlQuery = require("./sql")
 const app = express();
 const cors = require("cors");
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
 app.use(cors());
-const connectionHelper = require("../mysqlHelper"); //check this after completing all the functions, refactor the code :(
+ //check this after completing all the functions, refactor the code :(
 const PORT = 3003;
-
+//console.log(process.env)
 if (process.env.ENVIRONMENT === "lambda") {
   module.exports.handler = serverless(app);
 } else {
@@ -26,9 +28,13 @@ const apiGenerator = function (className) {
   const key = className;
   return `http://localhost:3005/dev/fetch/${key}`;
 };
+
+
 const classGenerator = function (engineName, engineID) {
   return engineName + engineID;
 };
+
+
 const createInstance = async function (req, res) {
   console.log(req.body);
   let uniqueEngineID = uuidv4Generator();
@@ -110,39 +116,16 @@ const DeliverEngine = async function (req, res) {
   // connection.end();
 };
 
-// Login route
-function mysqlQuery(connection, sql, values) {
-  if (values === undefined)
-    return new Promise((resolve, reject) => {
-      connection.query(sql, (error, results) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(results);
-        }
-      });
-    });
-  else
-    return new Promise((resolve, reject) => {
-      connection.query(sql, values, (error, results) => {
-        if (error) {
-          reject(error);
-        } else {
-          resolve(results);
-        }
-      });
-    });
-}
 
 const loginHandler = async function (req, res) {
-  console.log(req.body);
+  //console.log(req.body);
   try {
     const { email, password } = req.body;
     //console.log(email , password)
     const sql = `SELECT * from userData WHERE email = '${email}' `;
     const connection = connectionHelper;
-    const result = await mysqlQuery(connection, sql);
-    console.log(result);
+   // console.log(connection)
+     const result = await mysqlQuery(connection, sql)
     if (Object.keys(result).length === 0) {
       res.send("no such user email you");
     }
@@ -159,7 +142,8 @@ const loginHandler = async function (req, res) {
       .status(200)
       .json({ message: "Login successful", success: true, result });
   } catch (error) {
-    res.status(500).json({ message: "Internal server error bruh" });
+    console.log(error)
+    res.status(500).send(error);
   }
 };
 
@@ -191,17 +175,8 @@ const getImgList = async function (req, res) {
   console.log("Hello", req.body.engineID);
   const engineID = req.body.engineID;
   const sql = `SELECT * from imageData WHERE engineId = '${engineID}' `;
-  const connectionHelper = mysql.createConnection({
-    host: "gateway01.eu-central-1.prod.aws.tidbcloud.com",
-    port: 4000, // default TiDB port is 4000
-    user: "3dgtwFUbG2B7Tr1.root",
-    password: "3NFEh6DwOFfkQvsz",
-    database: "imgdb",
-    ssl: {
-      minVersion: "TLSv1.2",
-      rejectUnauthorized: true,
-    },
-  });
+ const connection = connectionHelper
+ connection.config.databse = process.env.IMGDB
   try {
     await mysqlQuery(connectionHelper, sql).then((response) => {
       res.status(200).send(response);

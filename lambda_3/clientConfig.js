@@ -1,6 +1,7 @@
 import weaviate from 'weaviate-ts-client'
+import 'dotenv/config'
 const client = weaviate.client({
     scheme: 'http',
-    host: '34.229.70.140:8080',
+    host: process.env.WEAVIATE_HOST,
 });
-module.exports = client
+export default client

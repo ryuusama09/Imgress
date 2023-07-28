@@ -3,14 +3,15 @@ const mysql = require("mysql");
 const serverless = require("serverless-http");
 const { v4: uuidv4Generator } = require("uuid");
 const app = express();
-const logger = require("../log");
+const logger = require("./log");
 const fs = require("fs");
 const cors = require("cors");
-const mysqlQuery = require("../sql");
-const connectionHelper = require("../mysqlHelper");
+const mysqlQuery = require("./sql");
+const connectionHelper = require("./mysqlHelper");
 const bodyParser = require("body-parser");
 const multer = require("multer");
 const AWS = require("aws-sdk");
+const config = require('./s3conf')
 app.set("view engine", "ejs");
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(bodyParser.json());
@@ -22,17 +23,14 @@ const PORT = 3004;
 if (process.env.ENVIRONMENT === "lambda") {
   module.exports.handler = serverless(app);
 } else {
-  app.listen(PORT, () => {
+  app.listen(PORT | parseInt(process.env.PORT_L_3), () => {
     console.log("Hello");
   });
 }
 
 const uploadS3Img = async (req) => {
   const s3 = new AWS.S3();
-  s3.config.update({
-    accessKeyId: "AKIA47AMLKB3ZK5V5XF2",
-    secretAccessKey: "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",
-  });
+  s3.config.update(config);
   let links = [];
   // const filePath = "C:/Users/ryusama09/Downloads/back-2.avif";
   const files = req.files;
@@ -40,7 +38,7 @@ const uploadS3Img = async (req) => {
   const ids = req.body.imageIds.split(",");
   const classname = req.body.className;
   const params = {
-    Bucket: "imgress-1",
+    Bucket: process.env.S3_BUCKET,
     Body: "",
     Key: "",
   };
@@ -80,17 +78,8 @@ const uploadTidb = async function (req, res) {
   const sql =
     "insert into imageData(engineId , image , className, imageID) values ( ? , ? , ? , ?)";
 
-  const connectionHelper = mysql.createConnection({
-    host: "gateway01.eu-central-1.prod.aws.tidbcloud.com",
-    port: 4000, // default TiDB port is 4000
-    user: "3dgtwFUbG2B7Tr1.root",
-    password: "3NFEh6DwOFfkQvsz",
-    database: "imgdb",
-    ssl: {
-      minVersion: "TLSv1.2",
-      rejectUnauthorized: true,
-    },
-  });
+  const connection = connectionHelper
+  connection.config.databse = process.env.IMGDB
   for (let i = 0; i < ids.length; i++) {
     let values = [];
     values.push(engineID);
@@ -98,7 +87,7 @@ const uploadTidb = async function (req, res) {
     values.push(className);
     values.push(ids[i]);
     console.log(values);
-    await mysqlQuery(connectionHelper, sql, values).then((response, err) => {
+    await mysqlQuery(connection, sql, values).then((response, err) => {
       console.log(response);
       if (err !== undefined) {
         console.log(err);
@@ -119,10 +108,7 @@ const deleteS3container = async function (bucket, dir) {
     Prefix: dir,
   };
   var s3 = new AWS.S3(listParams);
-  s3.config.update({
-    accessKeyId: "AKIA47AMLKB3ZK5V5XF2",
-    secretAccessKey: "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",
-  });
+  s3.config.update(config);
   const listedObjects = await s3.listObjectsV2(listParams).promise();
 
   if (listedObjects.Contents.length === 0) return;
@@ -143,10 +129,7 @@ const deleteS3container = async function (bucket, dir) {
 
 const deleteS3Images = async function (req, res) {
   const s3 = new AWS.S3();
-  s3.config.update({
-    accessKeyId: "AKIA47AMLKB3ZK5V5XF2",
-    secretAccessKey: "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",
-  });
+  s3.config.update(config);
   const dir = req.body.className;
   var ids = req.body.imageIds;
   var filename;
@@ -170,7 +153,7 @@ const deleteTidbContainers = async function (req, res) {
   const sql = `delete from imageData where className = '${className}'`;
   //const sqlfetch = `select * from imageData where engineId = ${engineID}`;
   const connection = connectionHelper;
-  connection.config.database = "imgdb";
+  connection.config.database = process.env.IMGDB;
   try {
     await mysqlQuery(connection, sql).then((responseNew) => {
       res.status(200).json({ success: true, responseNew });
@@ -184,7 +167,7 @@ const deleteTidbImages = async function (req, res) {
   const uniqueEngineID = req.body.uniqueEngineID;
   const connection = connectionHelper;
   let imageId;
-  connection.config.database = "imgdb";
+  connection.config.database = process.env.IMGDB;
   for (let i = 0; i < req.body.imageId.length; i++) {
     imageId = req.body.imageId[i];
     let sql = `delete from imageData where imageId = '${imageId}'`;

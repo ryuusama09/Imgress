@@ -1,6 +1,6 @@
 
-import connectionHelper  from '../mysqlHelper.js';
-import mysqlQuery from '../sql.js';
+import connectionHelper  from './mysqlHelper.js';
+import mysqlQuery from './sql.js';
 
 const getFetchedLink = async function (imageID){
 const connection = connectionHelper;

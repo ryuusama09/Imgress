@@ -1,5 +1,3 @@
-import weaviate from "weaviate-ts-client";
-import { readFileSync, writeFileSync } from "fs";
 import bodyParser from "body-parser";
 import cors from "cors";
 import ServerlessHttp from "serverless-http";
@@ -7,10 +5,11 @@ import express, { response } from "express";
 import multer from "multer";
 import schemaConfig from "./schema.js";
 import getFetchedLink from "./link.js";
-import logger from "../log.js";
+import logger from "./log.js";
+import client from "./clientConfig.js"
+import 'dotenv/config'
 const app = express();
 app.use(cors());
-
 var storage = multer.memoryStorage();
 var upload2 = multer({ storage: storage });
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -18,7 +17,7 @@ app.use(bodyParser.json());
 if (process.env.ENVIRONMENT === "lambda") {
   ServerlessHttp(app);
 } else {
-  app.listen(3005, () => {
+  app.listen(parseInt(process.env.PORT_L_3), () => {
     console.log("working");
   });
 }
@@ -53,10 +52,7 @@ app.post("/dev/properties", async (req, res) => {
 });
 
 const createClass = async function (req, res) {
-  const client = weaviate.client({
-    scheme: "http",
-    host: "34.229.70.140:8080",
-  });
+  
   const className = req.body.name;
 
   const newSchema = schemaConfig;
@@ -86,10 +82,7 @@ const createClass = async function (req, res) {
 };
 
 const deleteClass = async function (req, res) {
-  const client = weaviate.client({
-    scheme: "http",
-    host: "34.229.70.140:8080",
-  });
+ 
   var classList = [];
   classList = req.body.classList;
   for (let i = 0; i < classList.length; i++) {
@@ -104,10 +97,7 @@ const deleteClass = async function (req, res) {
 };
 
 const deleteImage = async function (req, res) {
-  const client = weaviate.client({
-    scheme: "http",
-    host: "34.229.70.140:8080",
-  });
+ 
   var ImgList = [];
   const className = req.body.className;
   ImgList = req.body.ImgList;
@@ -126,10 +116,7 @@ const deleteImage = async function (req, res) {
 };
 
 const SchemaGetter = async function (req, res) {
-  const client = weaviate.client({
-    scheme: "http",
-    host: "34.229.70.140:8080",
-  });
+
   const classname = req.body.className;
   console.log(classname);
 
@@ -148,10 +135,7 @@ const SchemaGetter = async function (req, res) {
 };
 
 const updateImg = async function (req, res) {
-  const client = weaviate.client({
-    scheme: "http",
-    host: "34.229.70.140:8080",
-  });
+ 
   const engineID = req.body.engineID;
   const className = req.body.className;
   const imgId = req.body.imgId;
@@ -180,10 +164,7 @@ const updateImg = async function (req, res) {
 };
 
 const fetchImage = async function (req, res) {
-  const client = weaviate.client({
-    scheme: "http",
-    host: "34.229.70.140:8080",
-  });
+ 
   let url = req.originalUrl;
   let limit = req.body.limit;
   url = url.replace("/dev/fetch/", "");
@@ -212,10 +193,7 @@ const fetchImage = async function (req, res) {
 };
 
 const uploadWeaviate = async (req, className, engineID) => {
-  const client = weaviate.client({
-    scheme: "http",
-    host: "34.229.70.140:8080",
-  });
+
   console.log(req.files);
   const files = req.files;
   var b64collection = [];
@@ -243,10 +221,7 @@ const uploadWeaviate = async (req, className, engineID) => {
   return { success: true, ids };
 };
 const propertyGetter = async(req ,res)=>{
-  const client = weaviate.client({
-    scheme: "http",
-    host: "34.229.70.140:8080",
-  });
+  
   const imgId = req.body.imageID;
   const className = req.body.className;
   await client.data
