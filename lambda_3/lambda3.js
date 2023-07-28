@@ -178,9 +178,8 @@ const fetchImage = async function (req, res) {
     .withNearImage({ image: b64 })
     .withLimit(limit)
     .do();
-  const result = resImage.data.Get[url][0].image;
+  //const result = resImage.data.Get[url][0].image;
   const res2 = resImage.data.Get[url];
-  console.log(res2);
   var images = [];
   await Promise.all(
     res2.map(async (r) => {
@@ -189,7 +188,7 @@ const fetchImage = async function (req, res) {
     })
   );
   console.log(images);
-  res.status(200).json({ message: "Success", images });
+  res.status(200).json({ message: "Success", images , res2 });
 };
 
 const uploadWeaviate = async (req, className, engineID) => {
@@ -221,7 +220,6 @@ const uploadWeaviate = async (req, className, engineID) => {
   return { success: true, ids };
 };
 const propertyGetter = async(req ,res)=>{
-  
   const imgId = req.body.imageID;
   const className = req.body.className;
   await client.data
@@ -229,8 +227,12 @@ const propertyGetter = async(req ,res)=>{
   .withClassName(className)
   .withId(imgId)
   .do().then(async(response)=>{
-    res.status(200).send(response)
+    let data = response
+    const {image , engineID, ...rest} = data.properties
+    data.properties = rest
+    res.status(200).send(data)
   }).catch(err=>{
+    console.log(err);
     res.status(404).send(err)
   })
 }
