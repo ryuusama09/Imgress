@@ -22,6 +22,7 @@ const Test = () => {
     getSchema();
   }, [classname]);
   const getImages = async () => {
+    setImages(null)
     setLoad(true);
     console.log(url);
     const formData = new FormData();
@@ -78,11 +79,12 @@ const Test = () => {
           ariaLabel="blocks-loading"
           wrapperStyle={{}}
           wrapperClass="blocks-wrapper"
-          colors={["#3BA4FC", "#3BA4FC", "#3BA4FC", "#3BA4FC", "#3BA4FC"]}
+          colors={["#052d4e", "#052d4e", "#052d4e", "#052d4e", "#052d4e"]}
         />
       </div>
       <div className="mt-6">
-        <h1 className="text-gray-600 text-2xl font-medium">{name}</h1>
+        <h1 className="text-gray-800 text-3xl font-semibold">{name}</h1>
+        <h1 className="text-gray-600 text-2xl font-medium">Test your engine</h1>
         <div className="bg-white py-4 px-8 shadow-lg mt-4 rounded-xl flex justify-between items-center">
           <div className="">
             <h1 className="text-black text-lg mb-2">
@@ -96,53 +98,51 @@ const Test = () => {
             />
           </div>
           <div className="">
-            <h1 className="text-black text-lg mb-2">
-              Result limit
-            </h1>
+            <h1 className="text-black text-lg mb-2">Result limit</h1>
             <input
               type="number"
               placeholder="Enter Limit"
               value={limit}
               onChange={(e) => setLimit(e.target.value)}
-              className="border border-gray-300 border-2 rounded pl-2 py-1"
+              className="border-gray-300 border-2 rounded pl-2 py-1"
             />
           </div>
           <button
             className="bg-blue-500 p-2 text-white rounded-lg h-fit"
             onClick={() => getImages()}
           >
-            Upload
+            Search
           </button>
         </div>
         <div className="mt-6">
-          <h1 className="text-black text-lg font-bold">Resultant Images</h1>
           {images && (
-            <div className="grid grid-cols-2 gap-12 rounded-xl bg-white p-12 mt-6">
-              {images?.map((image, index) => (
-                <div className="relative flex bg-white rounded-lg break-words shadow">
-                  <div className="absolute flex items-center justify-center bg-sky-100 w-8 h-8 -top-3 -left-3 rounded-full shadow text-xl">
-                    <h1>{index + 1}</h1>
-                  </div>
-                  <img
-                    src={image.url}
-                    width={250}
-                    height={250}
-                    className="w-1/2 h-[200px] object-contain bg-sky-100"
-                  />
-                  <div className="flex flex-col gap-4 px-6 py-4">
-                    {Object.keys(image.properties)
-                      .filter((k) => k !== "imageID")
-                      .filter((k) => k !== "engineID")
-                      .filter((k) => image.properties[k] !== null)
-                      .map((prop) => (
+            <div className="rounded-xl bg-white p-8 mt-6">
+              <h1 className="text-gray-600 text-2xl font-medium text-center mb-4">
+                Results
+              </h1>
+              <div className="grid grid-cols-2 gap-12 ">
+                {images?.map((image, index) => (
+                  <div className="relative flex bg-white rounded-lg break-words shadow">
+                    <div className="absolute flex items-center justify-center bg-sky-100 w-8 h-8 -top-3 -left-3 rounded-full shadow text-xl">
+                      <h1>{index + 1}</h1>
+                    </div>
+                    <img
+                      src={image.url}
+                      width={250}
+                      height={250}
+                      className="w-1/2 h-[200px] object-contain bg-sky-100"
+                    />
+                    <div className="flex flex-col gap-1 px-6 py-4">
+                      {Object.keys(image.properties).map((prop) => (
                         <h1 className="">
                           <span className="font-semibold">{prop}:</span>{" "}
                           {image.properties[prop]}
                         </h1>
                       ))}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           )}
         </div>

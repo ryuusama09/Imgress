@@ -1,18 +1,20 @@
 import React, { Fragment, useEffect, useState } from "react";
 import { Dialog, Transition } from "@headlessui/react";
 import { MdArrowBack } from "react-icons/md";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, Link } from "react-router-dom";
+import { ToastContainer, toast } from "react-toastify";
 import axios from "axios";
 import { v4 } from "uuid";
 import Loading from "./Loading";
 import { LuPlay, LuRefreshCcw } from "react-icons/lu";
 import { TbTrash } from "react-icons/tb";
 import { RiFolderUploadLine } from "react-icons/ri";
-import { AiFillLock } from "react-icons/ai";
+import { AiFillLock, AiOutlineOrderedList } from "react-icons/ai";
 import { MdRemoveCircleOutline } from "react-icons/md";
 import { Tab } from "@headlessui/react";
 import { useStore } from "../store";
 import Modal from "react-modal";
+import "react-toastify/dist/ReactToastify.css";
 const Card = ({ image, container, setLoading, getImages }) => {
   // console.log(image, container)
   const [properties, setProperties] = useState([]);
@@ -246,30 +248,39 @@ const Card = ({ image, container, setLoading, getImages }) => {
       <div class="p-6 flex gap-2 flex-wrap">
         <button
           type="button"
-          class="inline-flex w-full justify-center items-center gap-1 rounded-md mr-2 border border-transparent bg-sky-300 px-4 py-2 text-sm font-medium text-sky-900 hover:bg-sky-400"
+          class="inline-flex flex-grow justify-center items-center gap-1 rounded-md border border-transparent bg-green-100 px-4 py-3 text-sm font-medium text-green-900 hover:bg-green-200 relative group"
           data-te-ripple-init
           data-te-ripple-color="light"
           onClick={() => updateProperties()}
         >
-          Update
+          <RiFolderUploadLine />
+          <div class="opacity-0 bg-gray-300 text-black text-center text-xs rounded-lg py-2 absolute z-10 group-hover:opacity-100 bottom-full mb-1 px-3 pointer-events-none">
+            Update
+          </div>
         </button>
         <button
           type="button"
-          class="inline-flex w-full justify-center items-center gap-1 rounded-md mr-2 border border-transparent bg-sky-300 px-4 py-2 text-sm font-medium text-sky-900 hover:bg-sky-400"
+          class="inline-flex flex-grow justify-center items-center gap-1 rounded-md border border-transparent bg-sky-300 px-4 py-2 text-sm font-medium text-sky-900 hover:bg-sky-400 relative group"
           data-te-ripple-init
           data-te-ripple-color="light"
           onClick={() => getProp()}
         >
-          Properties
+          <AiOutlineOrderedList />
+          <div class="opacity-0 bg-gray-300 text-black text-center text-xs rounded-lg py-2 absolute z-10 group-hover:opacity-100 bottom-full mb-1 px-3 pointer-events-none">
+            Properties
+          </div>
         </button>
         <button
           type="button"
-          class="inline-flex w-full justify-center items-center gap-1 rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200"
+          class="inline-flex flex-grow justify-center items-center gap-1 rounded-md border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200 relative group"
           data-te-ripple-init
           data-te-ripple-color="light"
           onClick={() => deleteImage()}
         >
-          Delete
+          <TbTrash />
+          <div class="opacity-0 bg-gray-300 text-black text-center text-xs rounded-lg py-2 absolute z-10 group-hover:opacity-100 bottom-full mb-1 px-3 pointer-events-none">
+            Delete
+          </div>
         </button>
       </div>
     </div>
@@ -279,8 +290,9 @@ const UploadFiles = () => {
   const user = useStore((state) => state.user);
   const { engineId } = useParams();
   const [container, setContainer] = useState(null);
+  const [deleteModal, setDeleteModal] = useState(false)
   const [access, setAccess] = useState(null);
-  const [schema, setSchema] = useState(null);
+  // const [schema, setSchema] = useState(null);
   const [folder, setFolder] = useState([]);
   const [logs, setLogs] = useState([]);
   const [images, setImages] = useState([]);
@@ -300,30 +312,30 @@ const UploadFiles = () => {
   function closeModal() {
     setIsOpen(false);
   }
-  const getSchema = async (classname) => {
-    let data = JSON.stringify({
-      className: classname,
-    });
+  // const getSchema = async (classname) => {
+  //   let data = JSON.stringify({
+  //     className: classname,
+  //   });
 
-    let config = {
-      method: "post",
-      maxBodyLength: Infinity,
-      url: "https://lambda3.vercel.app/dev/schema",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      data: data,
-    };
+  //   let config = {
+  //     method: "post",
+  //     maxBodyLength: Infinity,
+  //     url: "https://lambda3.vercel.app/dev/schema",
+  //     headers: {
+  //       "Content-Type": "application/json",
+  //     },
+  //     data: data,
+  //   };
 
-    axios
-      .request(config)
-      .then((response) => {
-        setSchema(response.data);
-      })
-      .catch((error) => {
-        console.log(error);
-      });
-  };
+  //   axios
+  //     .request(config)
+  //     .then((response) => {
+  //       setSchema(response.data);
+  //     })
+  //     .catch((error) => {
+  //       console.log(error);
+  //     });
+  // };
   const takeAccess = async (email) => {
     let data = JSON.stringify({
       owner: container?.userID,
@@ -345,7 +357,18 @@ const UploadFiles = () => {
       .request(config)
       .then((response) => {
         console.log(JSON.stringify(response.data));
+        toast.success("Access Taken", {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
         getAccessList(container);
+        getLogs()
       })
       .catch((error) => {
         console.log(error);
@@ -412,6 +435,38 @@ const UploadFiles = () => {
     setImages(response.data);
     getLogs();
   };
+  const deleteContainer = async () => {
+    // console.log(selectedContainers);
+    axios
+      .all([
+        axios.post("https://lambda1.vercel.app/dev/delete-instance", {
+          engineID: [container.engineID],
+        }),
+        axios.post("https://lambda2.vercel.app/dev/deletetidbcont", {
+          engineID: [container.engineID],
+        }),
+        axios.post("https://lambda2.vercel.app/dev/deletes3cont", {
+          classname: [container.engineID],
+        }),
+      ])
+      .then(
+        axios.spread((...res) => {
+          console.log(res);
+          toast.success("Container Deleted", {
+            position: "bottom-right",
+            autoClose: 5000,
+            hideProgressBar: false,
+            closeOnClick: true,
+            pauseOnHover: true,
+            draggable: true,
+            progress: undefined,
+            theme: "light",
+          });
+          setDeleteModal(false);
+          navigate("/");
+        })
+      );
+  };
   const getContainer = () => {
     var myHeaders = new Headers();
     myHeaders.append("Content-Type", "application/json");
@@ -433,7 +488,7 @@ const UploadFiles = () => {
         setContainer(newData[0]);
         getImages();
         getAccessList(newData[0]);
-        getSchema(newData[0].class);
+        // getSchema(newData[0].class);
       })
       .catch((error) => console.log("error", error));
   };
@@ -466,6 +521,18 @@ const UploadFiles = () => {
           formData,
           config
         );
+        toast.success("Images Uploaded", {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
+        setFolder([]);
+        getLogs();
         console.log(response);
       });
 
@@ -501,7 +568,19 @@ const UploadFiles = () => {
       .request(config)
       .then((response) => {
         console.log(JSON.stringify(response.data));
+        toast.success("Access Given", {
+          position: "bottom-right",
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          draggable: true,
+          progress: undefined,
+          theme: "light",
+        });
         getAccessList(container);
+        getLogs()
+        setEmail("");
       })
       .catch((error) => {
         console.log(error);
@@ -528,11 +607,80 @@ const UploadFiles = () => {
   // }
   return (
     <div className="min-h-screen px-24 py-6 bg-gradient-to-r from-cyan-100 to-sky-300">
+      <ToastContainer />
       <MdArrowBack
         className="cursor-pointer"
         onClick={() => navigate("/")}
         size={28}
       />
+      <Transition appear show={deleteModal} as={Fragment}>
+        <Dialog
+          as="div"
+          className="relative z-10"
+          onClose={() => setDeleteModal(false)}
+        >
+          <Transition.Child
+            as={Fragment}
+            enter="ease-out duration-300"
+            enterFrom="opacity-0"
+            enterTo="opacity-100"
+            leave="ease-in duration-200"
+            leaveFrom="opacity-100"
+            leaveTo="opacity-0"
+          >
+            <div className="fixed inset-0 bg-black bg-opacity-25" />
+          </Transition.Child>
+
+          <div className="fixed inset-0 overflow-y-auto">
+            <div className="flex min-h-full items-center justify-center p-4 text-center">
+              <Transition.Child
+                as={Fragment}
+                enter="ease-out duration-300"
+                enterFrom="opacity-0 scale-95"
+                enterTo="opacity-100 scale-100"
+                leave="ease-in duration-200"
+                leaveFrom="opacity-100 scale-100"
+                leaveTo="opacity-0 scale-95"
+              >
+                <Dialog.Panel className="w-full max-w-md transform overflow-hidden rounded-2xl bg-white p-6 text-left align-middle shadow-xl transition-all">
+                  <Dialog.Title
+                    as="h3"
+                    className="text-lg font-medium leading-6 text-gray-900"
+                  >
+                    Delete Container
+                  </Dialog.Title>
+                  <div className="mt-2">
+                    <p className="text-sm text-gray-500">
+                      Are you sure you want to delete this container?
+                    </p>
+                  </div>
+
+                  <div className="mt-4">
+                    <button
+                      type="button"
+                      className="inline-flex justify-center rounded-md mr-2 border border-transparent bg-red-100 px-4 py-2 text-sm font-medium text-red-900 hover:bg-red-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-red-500 focus-visible:ring-offset-2"
+                      onClick={() => {
+                        deleteContainer();
+                      }}
+                    >
+                      Delete
+                    </button>
+                    <button
+                      type="button"
+                      className="inline-flex justify-center rounded-md border border-transparent bg-sky-100 px-4 py-2 text-sm font-medium text-sky-900 hover:bg-blue-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-sky-500 focus-visible:ring-offset-2"
+                      onClick={() => {
+                        setDeleteModal(false);
+                      }}
+                    >
+                      Nope
+                    </button>
+                  </div>
+                </Dialog.Panel>
+              </Transition.Child>
+            </div>
+          </div>
+        </Dialog>
+      </Transition>
       <Transition appear show={modalIsOpen} as={Fragment}>
         <Dialog as="div" className="relative z-10" onClose={() => closeModal()}>
           <Transition.Child
@@ -610,7 +758,7 @@ const UploadFiles = () => {
         </h1>
         <h1 className="text-gray-600 font-medium mb-4">{container?.apiURL}</h1>
 
-        <div className="bg-white p-4 shadow-lg mt-4 rounded flex justify-between">
+        <div className="bg-white p-4 shadow-lg mt-4 rounded-xl flex justify-between items-center">
           <h1 className="text-black text-lg">Choose a folder to upload!</h1>
           <input
             type="file"
@@ -619,10 +767,8 @@ const UploadFiles = () => {
               setFolder(e.target.files);
             }}
           />
-          <button
-            className="bg-blue-500 p-2 text-white rounded-lg  "
-            onClick={() => uploadFiles()}
-          >
+          <button onClick={() => uploadFiles()} className="inline-flex h-fit justify-center items-center gap-1 rounded-md mr-4 border border-transparent bg-sky-300 px-4 py-3 text-sm font-medium text-sky-900 hover:bg-sky-400">
+            <RiFolderUploadLine className="" />
             Upload
           </button>
         </div>
@@ -655,14 +801,19 @@ const UploadFiles = () => {
               </Tab>
             </Tab.List>
             <div className="">
-              <button className="inline-flex h-fit justify-center items-center gap-1 rounded-md mr-4 border border-transparent bg-sky-300 px-4 py-3 text-sm font-medium text-sky-900 hover:bg-sky-400">
+              <button
+                onClick={() => {
+                  navigate(`/test/${container.class}`);
+                }}
+                className="inline-flex h-fit justify-center items-center gap-1 rounded-md mr-4 border border-transparent bg-violet-300 px-4 py-3 text-sm font-medium text-violet-900 hover:bg-violet-400"
+              >
                 <LuPlay className="" />
                 Test
               </button>
-              <button className="inline-flex h-fit justify-center items-center gap-1 rounded-md mr-4 border border-transparent bg-sky-300 px-4 py-3 text-sm font-medium text-sky-900 hover:bg-sky-400">
+              {/* <button className="inline-flex h-fit justify-center items-center gap-1 rounded-md mr-4 border border-transparent bg-sky-300 px-4 py-3 text-sm font-medium text-sky-900 hover:bg-sky-400">
                 <RiFolderUploadLine className="" />
                 Upload
-              </button>
+              </button> */}
               <button
                 onClick={openModal}
                 className="inline-flex h-fit justify-center items-center gap-1 mr-4 rounded-md border border-transparent bg-green-100 px-4 py-3 text-sm font-medium text-green-900 hover:bg-green-200"
@@ -670,7 +821,10 @@ const UploadFiles = () => {
                 <AiFillLock />
                 Access
               </button>
-              <button className="inline-flex h-fit justify-center items-center gap-1 rounded-md border border-transparent bg-red-100 px-4 py-3 text-sm font-medium text-red-900 hover:bg-red-200">
+              <button
+                onClick={() => setDeleteModal(true)}
+                className="inline-flex h-fit justify-center items-center gap-1 rounded-md border border-transparent bg-red-100 px-4 py-3 text-sm font-medium text-red-900 hover:bg-red-200"
+              >
                 <TbTrash className="" />
                 Delete
               </button>
