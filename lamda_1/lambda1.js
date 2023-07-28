@@ -166,7 +166,7 @@ const signUpHandler = async function (req, res) {
     const { email, password, username } = req.body;
     console.log(req.body);
     const sql = `SELECT * from userData WHERE email = '${email}' `;
-    const result = await mysqlQuery(connection, sql);
+    const result = await mysqlQuery(connectionHelper, sql);
     if (Object.keys(result).length > 0) {
       return res.status(409).json({ message: "Email already exists" });
     }
@@ -178,7 +178,7 @@ const signUpHandler = async function (req, res) {
     // Save user to the database
     const userID = uuidv4Generator();
     const values = [email, username, hashedPassword, userID];
-    await mysqlQuery(connection, insert, values, userID);
+    await mysqlQuery(connectionHelper, insert, values, userID);
     res.status(201).json({ message: "User created successfully" });
   } catch (error) {
     res.status(500).json({ message: "Internal server error" });
