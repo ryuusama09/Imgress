@@ -288,6 +288,8 @@ const Card = ({ image, container, setLoading, getImages }) => {
 };
 const UploadFiles = () => {
   const user = useStore((state) => state.user);
+  const SetContainerName = useStore((state) => state.setContainerName);
+  const SetUrl = useStore((state) => state.setUrl);
   const { engineId } = useParams();
   const [container, setContainer] = useState(null);
   const [deleteModal, setDeleteModal] = useState(false)
@@ -803,6 +805,8 @@ const UploadFiles = () => {
             <div className="">
               <button
                 onClick={() => {
+                  SetContainerName(container.name);
+                  SetUrl(container.apiURL);
                   navigate(`/test/${container.class}`);
                 }}
                 className="inline-flex h-fit justify-center items-center gap-1 rounded-md mr-4 border border-transparent bg-violet-300 px-4 py-3 text-sm font-medium text-violet-900 hover:bg-violet-400"
