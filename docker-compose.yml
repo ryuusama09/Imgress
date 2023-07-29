@@ -1,3 +1,4 @@
+# docker compose for weaviate db and img2vec neural
 ---
 version: '3.4'
 services:
