@@ -4,11 +4,12 @@ import logo from "../assets/logo.png";
 import { MdEmail, MdPassword, MdPerson } from "react-icons/md";
 import wallpaper from "../assets/wallpaper2.png";
 import { ToastContainer, toast } from "react-toastify";
-import { SiCreatereactapp } from "react-icons/si";
+import { SiCreatereactapp, SiVercel } from "react-icons/si";
 import { AiOutlineFileAdd } from "react-icons/ai";
-import { TbHierarchy } from "react-icons/tb";
+import { TbDatabaseSearch, TbHierarchy } from "react-icons/tb";
 import { SiVitest, SiCoronaengine } from "react-icons/si";
 import "react-toastify/dist/ReactToastify.css";
+import { BsCloudyFill } from "react-icons/bs";
 const Register = () => {
   const ref = useRef(null);
   const contactRef = useRef(null);
@@ -102,6 +103,24 @@ const Register = () => {
       name: "Test API",
       desc: "You get a specified page for testing your reverse-search-engine api before you deploy it to your codebase",
       Icon: () => <SiVitest size={70} color="blue" />,
+    },
+    {
+      id: 5,
+      name: "Go Serverless",
+      desc: "Powered by Vercel, we provide you with a serverless experience for reduced latency and increased scalability",
+      Icon: () => <SiVercel size={70} color="blue" />,
+    },
+    {
+      id: 6,
+      name: "Cloud Storage",
+      desc: "Inbuilt cloud storage for your images to maximize data redundancy and availability",
+      Icon: () => <BsCloudyFill size={70} color="blue" />,
+    },
+    {
+      id: 6,
+      name: "Accurate Results",
+      desc: "Powered by Weaviate, we provide you with the most accurate results for your reverse image search queries",
+      Icon: () => <TbDatabaseSearch size={70} color="blue" />,
     },
   ];
 
@@ -202,10 +221,10 @@ const Register = () => {
       </div>
       <div
         ref={ref}
-        className="px-36 py-6 bg-gradient-to-r from-cyan-100 to-sky-300 h-screen"
+        className="px-36 py-8 bg-gradient-to-r from-cyan-100 to-sky-300 min-h-screen"
       >
         <div>
-          <h1 className="text-center leading-tight mt-6 text-4xl font-semibold text-transparent bg-clip-text bg-gradient-to-r to-sky-800 from-sky-900">
+          <h1 className="text-center leading-tight mt-4 text-4xl font-semibold text-transparent bg-clip-text bg-gradient-to-r to-sky-800 from-sky-900">
             What is Imgress?
           </h1>
           <div className="grid grid-cols-3 gap-6 mt-12">
