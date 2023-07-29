@@ -867,7 +867,7 @@ const UploadFiles = () => {
               </div>
               <div className="bg-sky-100 px-4 py-3 rounded-xl">
                 {logs?.map((log) => (
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-4 text-sm">
                     <h1 className="text-black font-mono">
                       {new Date(log.logtime)
                         .toISOString()
