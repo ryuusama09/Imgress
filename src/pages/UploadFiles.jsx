@@ -60,28 +60,28 @@ const Card = ({ image, container, setLoading, getImages }) => {
       .request(config)
       .then((response) => {
         console.log(JSON.stringify(response.data));
-        // let data = JSON.stringify({
-        //   className: container.class,
-        //   imageIds: [image.imageID],
-        // });
-        // let config = {
-        //   method: "post",
-        //   maxBodyLength: Infinity,
-        //   url: "https://lambda2.vercel.app/dev/deletes3img",
-        //   headers: {
-        //     "Content-Type": "application/json",
-        //   },
-        //   data: data,
-        // };
+        let data = JSON.stringify({
+          className: container.class,
+          imageIds: [image.imageID],
+        });
+        let config = {
+          method: "post",
+          maxBodyLength: Infinity,
+          url: "https://lambda2.vercel.app/dev/deletes3img",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          data: data,
+        };
 
-        // axios
-        //   .request(config)
-        //   .then((response) => {
-        //     console.log(JSON.stringify(response.data));
-        //   })
-        //   .catch((error) => {
-        //     console.log(error);
-        //   });
+        axios
+          .request(config)
+          .then((response) => {
+            console.log(JSON.stringify(response.data));
+          })
+          .catch((error) => {
+            console.log(error);
+          });
         getImages();
       })
       .catch((error) => {
